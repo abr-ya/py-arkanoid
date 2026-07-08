@@ -80,6 +80,27 @@ After merge, `main` should contain:
 - archived change history
 - roadmap/backlog updated with the completed item
 
+## Agent Token Economy
+
+Use the project structure to keep agent context small. The detailed
+collaboration rules live in [`AGENTS.md`](../AGENTS.md).
+
+Default agent flow:
+
+1. Identify the active change from the user request or `openspec/backlog.md`.
+2. Run `openspec status --change <change-name> --json`.
+3. Run `openspec instructions apply --change <change-name> --json`.
+4. Read only the returned `contextFiles` before touching broader repo context.
+5. Ask the user for missing context when a broad search would be speculative.
+6. Offer exact commands for the user to run when local/manual verification is
+   enough and does not need agent-side execution.
+7. Keep updates and handoffs focused on changed files, completed tasks,
+   verification, and blockers.
+
+Avoid re-reading the whole repo, re-explaining the workflow, or running broad
+test/search commands unless the selected change or a failure makes that
+necessary.
+
 ## Archive Meaning
 
 Archiving a change does not mean deleting the plan. It means:
