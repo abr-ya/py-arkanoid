@@ -17,6 +17,14 @@ MUTED = (144, 153, 166)
 PADDLE = (76, 201, 240)
 BALL = (255, 209, 102)
 BRICK_COLORS = [(239, 71, 111), (255, 159, 67), (6, 214, 160), (118, 120, 237)]
+BRICK_STATE_COLORS = {
+    "normal": (239, 71, 111),
+    "strong": (255, 159, 67),
+    "strong-damaged": (255, 209, 102),
+    "bonus": (118, 120, 237),
+    "indestructible": (144, 153, 166),
+    "extra-life": (6, 214, 160),
+}
 
 
 def run() -> None:
@@ -86,6 +94,8 @@ def _draw(
 
     if session.state is GameState.PAUSED:
         _draw_centered(screen, title_font, "PAUSED", HEIGHT / 2 - 16, FOREGROUND)
+    elif session.state is GameState.LEVEL_CLEAR:
+        _draw_centered(screen, title_font, "LEVEL CLEAR", HEIGHT / 2 - 16, FOREGROUND)
     elif session.state is GameState.GAME_OVER:
         _draw_centered(screen, title_font, "GAME OVER", HEIGHT / 2 - 42, FOREGROUND)
         _draw_centered(screen, font, f"Final score: {session.score}", HEIGHT / 2 + 12, MUTED)
@@ -108,7 +118,10 @@ def _draw_entities(screen: pygame.Surface, session: GameSession) -> None:
     for index, brick in enumerate(session.bricks):
         pygame.draw.rect(
             screen,
-            BRICK_COLORS[index // 9 % len(BRICK_COLORS)],
+            BRICK_STATE_COLORS.get(
+                brick.visual_state,
+                BRICK_COLORS[index // 9 % len(BRICK_COLORS)],
+            ),
             _to_pygame_rect(brick.rect),
             border_radius=3,
         )

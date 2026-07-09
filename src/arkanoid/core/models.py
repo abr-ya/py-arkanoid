@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 
 
 @dataclass(slots=True)
@@ -91,11 +92,66 @@ class Ball:
         self.vy = 0
         self.attached = True
 
-    def launch(self) -> None:
+    def launch(self, speed_multiplier: float = 1.0) -> None:
         if self.attached:
-            self.vx = 180
-            self.vy = -360
+            self.vx = 180 * speed_multiplier
+            self.vy = -360 * speed_multiplier
             self.attached = False
+
+
+class BrickType(Enum):
+    NORMAL = "normal"
+    STRONG = "strong"
+    BONUS_MARKER = "bonus-marker"
+    INDESTRUCTIBLE = "indestructible"
+    EXTRA_LIFE = "extra-life"
+
+
+@dataclass(frozen=True, slots=True)
+class BrickTypeDefinition:
+    type: BrickType
+    hp: int
+    score: int = 100
+    destructible: bool = True
+    grants_extra_life: bool = False
+    bonus_marker: str | None = None
+    visual_state: str = "normal"
+
+
+BRICK_TYPES: dict[BrickType, BrickTypeDefinition] = {
+    BrickType.NORMAL: BrickTypeDefinition(
+        type=BrickType.NORMAL,
+        hp=1,
+        visual_state="normal",
+    ),
+    BrickType.STRONG: BrickTypeDefinition(
+        type=BrickType.STRONG,
+        hp=2,
+        score=150,
+        visual_state="strong",
+    ),
+    BrickType.BONUS_MARKER: BrickTypeDefinition(
+        type=BrickType.BONUS_MARKER,
+        hp=1,
+        score=125,
+        bonus_marker="future-power-up",
+        visual_state="bonus",
+    ),
+    BrickType.INDESTRUCTIBLE: BrickTypeDefinition(
+        type=BrickType.INDESTRUCTIBLE,
+        hp=1,
+        score=0,
+        destructible=False,
+        visual_state="indestructible",
+    ),
+    BrickType.EXTRA_LIFE: BrickTypeDefinition(
+        type=BrickType.EXTRA_LIFE,
+        hp=1,
+        score=100,
+        grants_extra_life=True,
+        visual_state="extra-life",
+    ),
+}
 
 
 @dataclass(slots=True)
@@ -105,11 +161,47 @@ class Brick:
     width: float = 64
     height: float = 22
     hp: int = 1
+    type: BrickType = BrickType.NORMAL
+    score: int = 100
+    destructible: bool = True
+    grants_extra_life: bool = False
+    bonus_marker: str | None = None
 
     @property
     def rect(self) -> Rect:
         return Rect(self.x, self.y, self.width, self.height)
 
+    @property
+    def visual_state(self) -> str:
+        if self.type is BrickType.STRONG and self.hp == 1:
+            return "strong-damaged"
+        return BRICK_TYPES[self.type].visual_state
+
     def hit(self) -> bool:
+        if not self.destructible:
+            return False
         self.hp -= 1
         return self.hp <= 0
+
+
+def create_brick(
+    *,
+    x: float,
+    y: float,
+    width: float = 64,
+    height: float = 22,
+    type: BrickType = BrickType.NORMAL,
+) -> Brick:
+    definition = BRICK_TYPES[type]
+    return Brick(
+        x=x,
+        y=y,
+        width=width,
+        height=height,
+        hp=definition.hp,
+        type=definition.type,
+        score=definition.score,
+        destructible=definition.destructible,
+        grants_extra_life=definition.grants_extra_life,
+        bonus_marker=definition.bonus_marker,
+    )
