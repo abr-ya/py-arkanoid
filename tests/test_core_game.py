@@ -1,11 +1,11 @@
-from arkanoid.core.game import BRICK_SCORE, create_session
+from arkanoid.core.game import BRICK_SCORE, SLOW_BALL_MULTIPLIER, create_session
 from arkanoid.core.levels import (
     DEFAULT_BRICK_ROWS,
     DEFAULT_LEVEL_NAME,
     create_bricks_for_level,
     load_level,
 )
-from arkanoid.core.models import Brick, BrickType, create_brick
+from arkanoid.core.models import BonusItem, Brick, BrickType, PowerUpType, create_brick
 from arkanoid.core.state import GameState, toggle_pause
 
 
@@ -147,6 +147,33 @@ def test_valid_level_config_loads_layout_and_settings(tmp_path) -> None:
     assert bricks[2].y == 34
 
 
+def test_level_symbols_can_configure_specific_power_up_bricks(tmp_path) -> None:
+    levels_dir = tmp_path / "levels"
+    levels_dir.mkdir()
+    (levels_dir / "level_01.yaml").write_text(
+        "\n".join(
+            [
+                "number: 1",
+                'name: "Power Test"',
+                "bricks:",
+                "  rows:",
+                '    - "WFMT"',
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    level = load_level(levels_dir=levels_dir)
+    bricks = create_bricks_for_level(level)
+
+    assert [brick.bonus_marker for brick in bricks] == [
+        PowerUpType.WIDE.value,
+        PowerUpType.SLOW.value,
+        PowerUpType.MULTI.value,
+        PowerUpType.STICKY.value,
+    ]
+
+
 def test_invalid_or_missing_level_config_falls_back(tmp_path) -> None:
     missing = load_level(levels_dir=tmp_path)
     assert missing.name == DEFAULT_LEVEL_NAME
@@ -225,8 +252,141 @@ def test_extra_life_brick_grants_life_when_destroyed() -> None:
 def test_bonus_marker_brick_scores_without_spawning_power_up() -> None:
     brick = create_brick(x=0, y=0, type=BrickType.BONUS_MARKER)
 
-    assert brick.bonus_marker == "future-power-up"
+    assert brick.bonus_marker == PowerUpType.WIDE.value
     assert brick.hit()
+
+
+def test_bonus_marker_brick_spawns_falling_bonus_item() -> None:
+    session = create_session()
+    session.start()
+    bonus_brick = create_brick(x=100, y=100, type=BrickType.BONUS_MARKER)
+    spare_brick = create_brick(x=300, y=100)
+    session.bricks = [bonus_brick, spare_brick]
+    session.ball.attached = False
+    session.ball.x = 110
+    session.ball.y = 110
+    session.ball.vx = 0
+    session.ball.vy = -200
+
+    session.update(0)
+
+    assert bonus_brick not in session.bricks
+    assert len(session.bonus_items) == 1
+    assert session.bonus_items[0].type is PowerUpType.WIDE
+
+
+def test_missed_bonus_item_is_removed_without_effect() -> None:
+    session = create_session()
+    session.start()
+    session.bonus_items = [
+        BonusItem(
+            x=session.paddle.x,
+            y=session.playfield.height + 1,
+            type=PowerUpType.WIDE,
+        )
+    ]
+
+    session.update(0)
+
+    assert session.bonus_items == []
+    assert PowerUpType.WIDE not in session.active_effects
+
+
+def test_catching_wide_bonus_increases_paddle_width_and_expires() -> None:
+    session = create_session()
+    session.start()
+    base_width = session.paddle.width
+    session.bonus_items = [BonusItem(x=session.paddle.x, y=session.paddle.y, type=PowerUpType.WIDE)]
+
+    session.update(0)
+
+    assert session.bonus_items == []
+    assert session.paddle.width == base_width * 1.5
+
+    session.update(10.1)
+
+    assert session.paddle.width == base_width
+    assert PowerUpType.WIDE not in session.active_effects
+
+
+def test_slow_bonus_scales_active_ball_and_expires_independently() -> None:
+    session = create_session()
+    session.start()
+    session.launch_ball()
+    original_vx = session.ball.vx
+    original_vy = session.ball.vy
+    session._activate_power_up(PowerUpType.SLOW)
+    session._activate_power_up(PowerUpType.WIDE)
+
+    assert session.ball.vx == original_vx * SLOW_BALL_MULTIPLIER
+    assert session.ball.vy == original_vy * SLOW_BALL_MULTIPLIER
+    assert PowerUpType.SLOW in session.active_effects
+    assert PowerUpType.WIDE in session.active_effects
+
+    session._update_active_effects(8.1)
+
+    assert round(session.ball.vx, 6) == original_vx
+    assert round(session.ball.vy, 6) == original_vy
+    assert PowerUpType.SLOW not in session.active_effects
+    assert PowerUpType.WIDE in session.active_effects
+
+
+def test_recatching_timed_effect_refreshes_without_compounding() -> None:
+    session = create_session()
+    session.start()
+    base_width = session.paddle.width
+
+    session._activate_power_up(PowerUpType.WIDE)
+    session.update(4)
+    session._activate_power_up(PowerUpType.WIDE)
+
+    assert session.paddle.width == base_width * 1.5
+    assert session.active_effects[PowerUpType.WIDE].remaining == 10
+
+
+def test_multi_bonus_adds_ball_and_only_final_ball_loses_life() -> None:
+    session = create_session()
+    session.start()
+    session.launch_ball()
+    session._activate_power_up(PowerUpType.MULTI)
+
+    assert len(session.balls) == 2
+
+    first_ball = session.balls[0]
+    first_ball.y = session.playfield.height + first_ball.radius + 1
+    session.update(0)
+
+    assert len(session.balls) == 1
+    assert session.lives == 3
+    assert session.state is GameState.PLAYING
+
+    final_ball = session.balls[0]
+    final_ball.y = session.playfield.height + final_ball.radius + 1
+    session.update(0)
+
+    assert session.lives == 2
+    assert len(session.balls) == 1
+    assert session.ball.attached
+
+
+def test_sticky_bonus_catches_next_ball_until_launch() -> None:
+    session = create_session()
+    session.start()
+    session._activate_power_up(PowerUpType.STICKY)
+    session.ball.attached = False
+    session.ball.x = session.paddle.center_x
+    session.ball.y = session.paddle.y - 1
+    session.ball.vx = 0
+    session.ball.vy = 250
+
+    session.update(0)
+
+    assert session.ball.attached
+    assert session.sticky_charges == 0
+
+    session.launch_ball()
+
+    assert not session.ball.attached
 
 
 def test_level_clear_starts_transition_and_next_level_preserves_score() -> None:

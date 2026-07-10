@@ -99,6 +99,35 @@ class Ball:
             self.attached = False
 
 
+class PowerUpType(Enum):
+    WIDE = "wide"
+    SLOW = "slow"
+    MULTI = "multi"
+    STICKY = "sticky"
+
+
+@dataclass(slots=True)
+class BonusItem:
+    x: float
+    y: float
+    type: PowerUpType
+    size: float = 18
+    speed: float = 140
+
+    @property
+    def rect(self) -> Rect:
+        return Rect(self.x, self.y, self.size, self.size)
+
+    def move(self, dt: float) -> None:
+        self.y += self.speed * dt
+
+
+@dataclass(slots=True)
+class ActiveEffect:
+    type: PowerUpType
+    remaining: float
+
+
 class BrickType(Enum):
     NORMAL = "normal"
     STRONG = "strong"
@@ -134,7 +163,7 @@ BRICK_TYPES: dict[BrickType, BrickTypeDefinition] = {
         type=BrickType.BONUS_MARKER,
         hp=1,
         score=125,
-        bonus_marker="future-power-up",
+        bonus_marker=PowerUpType.WIDE.value,
         visual_state="bonus",
     ),
     BrickType.INDESTRUCTIBLE: BrickTypeDefinition(
@@ -191,6 +220,7 @@ def create_brick(
     width: float = 64,
     height: float = 22,
     type: BrickType = BrickType.NORMAL,
+    bonus_marker: str | None = None,
 ) -> Brick:
     definition = BRICK_TYPES[type]
     return Brick(
@@ -203,5 +233,5 @@ def create_brick(
         score=definition.score,
         destructible=definition.destructible,
         grants_extra_life=definition.grants_extra_life,
-        bonus_marker=definition.bonus_marker,
+        bonus_marker=bonus_marker or definition.bonus_marker,
     )
