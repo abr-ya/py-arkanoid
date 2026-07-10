@@ -2,49 +2,39 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from arkanoid.core.levels import LevelConfig, create_bricks_for_level, load_level
 from arkanoid.core.models import Ball, Brick, Paddle, Playfield, Rect
 from arkanoid.core.state import GameState, toggle_pause
 
 BRICK_SCORE = 100
+LEVEL_CLEAR_SECONDS = 0.8
 
 
 def create_starter_bricks() -> list[Brick]:
-    rows = 4
-    columns = 9
-    gap = 8
-    brick_width = 72
-    brick_height = 22
-    left = 44
-    top = 72
-    return [
-        Brick(
-            x=left + column * (brick_width + gap),
-            y=top + row * (brick_height + gap),
-            width=brick_width,
-            height=brick_height,
-        )
-        for row in range(rows)
-        for column in range(columns)
-    ]
+    return create_bricks_for_level(load_level())
 
 
 @dataclass(slots=True)
 class GameSession:
     playfield: Playfield = field(default_factory=Playfield)
     state: GameState = GameState.MENU
+    level: LevelConfig = field(default_factory=load_level)
     paddle: Paddle = field(init=False)
     ball: Ball = field(init=False)
-    bricks: list[Brick] = field(default_factory=create_starter_bricks)
+    bricks: list[Brick] = field(init=False)
     lives: int = 3
     score: int = 0
+    level_clear_timer: float = 0
     wants_quit: bool = False
 
     def __post_init__(self) -> None:
         self.paddle = Paddle(
-            x=(self.playfield.width - 96) / 2,
+            x=(self.playfield.width - self.level.paddle_width) / 2,
             y=self.playfield.height - 56,
+            width=self.level.paddle_width,
         )
         self.ball = Ball(x=0, y=0)
+        self.bricks = create_bricks_for_level(self.level)
         self.reset_ball()
 
     def start(self) -> None:
@@ -52,11 +42,13 @@ class GameSession:
             fresh = create_session()
             self.playfield = fresh.playfield
             self.state = GameState.PLAYING
+            self.level = fresh.level
             self.paddle = fresh.paddle
             self.ball = fresh.ball
             self.bricks = fresh.bricks
             self.lives = fresh.lives
             self.score = fresh.score
+            self.level_clear_timer = 0
             self.wants_quit = False
 
     def restart(self) -> None:
@@ -74,9 +66,13 @@ class GameSession:
 
     def launch_ball(self) -> None:
         if self.state is GameState.PLAYING:
-            self.ball.launch()
+            self.ball.launch(self.level.ball_speed_multiplier)
 
     def update(self, dt: float, paddle_direction: float = 0) -> None:
+        if self.state is GameState.LEVEL_CLEAR:
+            self._update_level_clear(dt)
+            return
+
         if self.state is not GameState.PLAYING:
             return
 
@@ -112,8 +108,8 @@ class GameSession:
         offset = (self.ball.x - self.paddle.center_x) / (self.paddle.width / 2)
         offset = max(-1, min(1, offset))
         self.ball.y = self.paddle.y - self.ball.radius
-        self.ball.vx = offset * 300
-        self.ball.vy = -360
+        self.ball.vx = offset * 300 * self.level.ball_speed_multiplier
+        self.ball.vy = -360 * self.level.ball_speed_multiplier
 
     def _handle_brick_collision(self) -> None:
         ball_rect = self.ball.rect
@@ -124,8 +120,39 @@ class GameSession:
             self._reflect_from_rect(brick.rect)
             if brick.hit():
                 self.bricks.remove(brick)
-                self.score += BRICK_SCORE
+                self.score += brick.score
+                if brick.grants_extra_life:
+                    self.lives += 1
+                if self.is_level_cleared():
+                    self._start_level_clear()
             break
+
+    def is_level_cleared(self) -> bool:
+        return all(not brick.destructible for brick in self.bricks)
+
+    def _start_level_clear(self) -> None:
+        self.state = GameState.LEVEL_CLEAR
+        self.level_clear_timer = LEVEL_CLEAR_SECONDS
+        self.ball.attached = True
+
+    def _update_level_clear(self, dt: float) -> None:
+        self.level_clear_timer -= dt
+        if self.level_clear_timer > 0:
+            return
+        self._load_next_level()
+
+    def _load_next_level(self) -> None:
+        next_level_number = self.level.number + 1
+        self.level = load_level(next_level_number)
+        self.paddle = Paddle(
+            x=(self.playfield.width - self.level.paddle_width) / 2,
+            y=self.playfield.height - 56,
+            width=self.level.paddle_width,
+        )
+        self.bricks = create_bricks_for_level(self.level)
+        self.reset_ball()
+        self.level_clear_timer = 0
+        self.state = GameState.PLAYING
 
     def _reflect_from_rect(self, rect: Rect) -> None:
         dx_left = abs(self.ball.rect.right - rect.left)
