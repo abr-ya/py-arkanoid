@@ -1,8 +1,8 @@
 ## 1. Storage
 
-- [ ] 1.1 Implement leaderboard record model and JSON serialization.
-- [ ] 1.2 Implement load behavior for missing, empty, and corrupted files.
-- [ ] 1.3 Implement save behavior with top-10 sorting.
+- [x] 1.1 Implement leaderboard record model and JSON serialization.
+- [x] 1.2 Implement load behavior for missing, empty, and corrupted files.
+- [x] 1.3 Implement save behavior with top-10 sorting.
 
 ## 2. Game Flow
 
@@ -12,6 +12,6 @@
 
 ## 3. Tests
 
-- [ ] 3.1 Add tests for sorting and trimming records.
-- [ ] 3.2 Add tests for corrupted file fallback.
+- [x] 3.1 Add tests for sorting and trimming records.
+- [x] 3.2 Add tests for corrupted file fallback.
 - [ ] 3.3 Add tests for game-over score entry flow.
