@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from arkanoid.core.models import Brick, BrickType, create_brick
+from arkanoid.core.models import Brick, BrickType, PowerUpType, create_brick
 
 DEFAULT_LEVEL_NUMBER = 1
 DEFAULT_LEVEL_NAME = "Training Wall"
@@ -22,6 +22,10 @@ DEFAULT_BRICK_SYMBOLS = {
     "2": BrickType.STRONG,
     "S": BrickType.STRONG,
     "B": BrickType.BONUS_MARKER,
+    "W": (BrickType.BONUS_MARKER, PowerUpType.WIDE),
+    "F": (BrickType.BONUS_MARKER, PowerUpType.SLOW),
+    "M": (BrickType.BONUS_MARKER, PowerUpType.MULTI),
+    "T": (BrickType.BONUS_MARKER, PowerUpType.STICKY),
     "X": BrickType.INDESTRUCTIBLE,
     "L": BrickType.EXTRA_LIFE,
 }
@@ -69,9 +73,11 @@ def create_bricks_for_level(level: LevelConfig) -> list[Brick]:
         for column_index, cell in enumerate(row):
             if cell in {" ", ".", "0", "_"}:
                 continue
-            brick_type = DEFAULT_BRICK_SYMBOLS.get(cell)
-            if brick_type is None:
+            symbol = DEFAULT_BRICK_SYMBOLS.get(cell)
+            if symbol is None:
                 continue
+            brick_type = symbol[0] if isinstance(symbol, tuple) else symbol
+            bonus_marker = symbol[1].value if isinstance(symbol, tuple) else None
             bricks.append(
                 create_brick(
                     x=level.bricks.left + column_index * (level.bricks.width + level.bricks.gap),
@@ -79,6 +85,7 @@ def create_bricks_for_level(level: LevelConfig) -> list[Brick]:
                     width=level.bricks.width,
                     height=level.bricks.height,
                     type=brick_type,
+                    bonus_marker=bonus_marker,
                 )
             )
     return bricks

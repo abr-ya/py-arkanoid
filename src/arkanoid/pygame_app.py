@@ -5,6 +5,7 @@ from typing import Iterable
 import pygame
 
 from arkanoid.core.game import GameSession, create_session
+from arkanoid.core.models import PowerUpType
 from arkanoid.core.state import GameState
 
 WIDTH = 800
@@ -16,6 +17,12 @@ FOREGROUND = (234, 238, 246)
 MUTED = (144, 153, 166)
 PADDLE = (76, 201, 240)
 BALL = (255, 209, 102)
+BONUS_COLORS = {
+    PowerUpType.WIDE: (76, 201, 240),
+    PowerUpType.SLOW: (118, 120, 237),
+    PowerUpType.MULTI: (255, 209, 102),
+    PowerUpType.STICKY: (6, 214, 160),
+}
 BRICK_COLORS = [(239, 71, 111), (255, 159, 67), (6, 214, 160), (118, 120, 237)]
 BRICK_STATE_COLORS = {
     "normal": (239, 71, 111),
@@ -105,16 +112,33 @@ def _draw(
 def _draw_hud(screen: pygame.Surface, session: GameSession, font: pygame.font.Font) -> None:
     label = font.render(f"Score: {session.score}    Lives: {session.lives}", True, FOREGROUND)
     screen.blit(label, (18, 16))
+    effect_labels = [
+        f"{effect.type.value.upper()} {max(0, effect.remaining):.0f}s"
+        for effect in session.active_effects.values()
+    ]
+    if session.sticky_charges:
+        effect_labels.append(f"STICKY x{session.sticky_charges}")
+    if effect_labels:
+        effects = font.render("  ".join(effect_labels), True, MUTED)
+        screen.blit(effects, (18, 42))
 
 
 def _draw_entities(screen: pygame.Surface, session: GameSession) -> None:
     pygame.draw.rect(screen, PADDLE, _to_pygame_rect(session.paddle.rect), border_radius=4)
-    pygame.draw.circle(
-        screen,
-        BALL,
-        (round(session.ball.x), round(session.ball.y)),
-        round(session.ball.radius),
-    )
+    for ball in session.balls:
+        pygame.draw.circle(
+            screen,
+            BALL,
+            (round(ball.x), round(ball.y)),
+            round(ball.radius),
+        )
+    for item in session.bonus_items:
+        pygame.draw.rect(
+            screen,
+            BONUS_COLORS[item.type],
+            _to_pygame_rect(item.rect),
+            border_radius=6,
+        )
     for index, brick in enumerate(session.bricks):
         pygame.draw.rect(
             screen,
