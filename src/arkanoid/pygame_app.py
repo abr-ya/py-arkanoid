@@ -50,7 +50,7 @@ def run() -> None:
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
-                _handle_keydown(event.key, session)
+                _handle_keydown(event, session)
 
         keys = pygame.key.get_pressed()
         direction = float(keys[pygame.K_RIGHT] or keys[pygame.K_d]) - float(
@@ -67,8 +67,18 @@ def run() -> None:
     pygame.quit()
 
 
-def _handle_keydown(key: int, session: GameSession) -> None:
-    if key in {pygame.K_q}:
+def _handle_keydown(event: pygame.event.Event, session: GameSession) -> None:
+    key = event.key
+    if session.state is GameState.NAME_ENTRY:
+        if key == pygame.K_BACKSPACE:
+            session.delete_score_name_char()
+        elif key == pygame.K_RETURN:
+            session.submit_score_name()
+        elif key == pygame.K_ESCAPE:
+            session.request_quit()
+        else:
+            session.enter_score_name_char(getattr(event, "unicode", ""))
+    elif key in {pygame.K_q}:
         session.request_quit()
     elif key == pygame.K_ESCAPE:
         session.toggle_pause()
@@ -103,10 +113,16 @@ def _draw(
         _draw_centered(screen, title_font, "PAUSED", HEIGHT / 2 - 16, FOREGROUND)
     elif session.state is GameState.LEVEL_CLEAR:
         _draw_centered(screen, title_font, "LEVEL CLEAR", HEIGHT / 2 - 16, FOREGROUND)
+    elif session.state is GameState.NAME_ENTRY:
+        _draw_centered(screen, title_font, "NEW SCORE", HEIGHT / 2 - 90, FOREGROUND)
+        _draw_centered(screen, font, f"Final score: {session.score}", HEIGHT / 2 - 38, MUTED)
+        _draw_centered(screen, font, f"Name: {session.score_name:<3}", HEIGHT / 2 + 4, FOREGROUND)
+        _draw_centered(screen, font, "Type 3 letters, press Enter", HEIGHT / 2 + 44, MUTED)
     elif session.state is GameState.GAME_OVER:
         _draw_centered(screen, title_font, "GAME OVER", HEIGHT / 2 - 42, FOREGROUND)
         _draw_centered(screen, font, f"Final score: {session.score}", HEIGHT / 2 + 12, MUTED)
-        _draw_centered(screen, font, "Press Enter or Space", HEIGHT / 2 + 48, MUTED)
+        _draw_leaderboard(screen, session, font, HEIGHT / 2 + 46)
+        _draw_centered(screen, font, "Press Enter or Space", HEIGHT - 42, MUTED)
 
 
 def _draw_hud(screen: pygame.Surface, session: GameSession, font: pygame.font.Font) -> None:
@@ -149,6 +165,21 @@ def _draw_entities(screen: pygame.Surface, session: GameSession) -> None:
             _to_pygame_rect(brick.rect),
             border_radius=3,
         )
+
+
+def _draw_leaderboard(
+    screen: pygame.Surface,
+    session: GameSession,
+    font: pygame.font.Font,
+    start_y: float,
+) -> None:
+    _draw_centered(screen, font, "TOP SCORES", start_y, FOREGROUND)
+    if not session.leaderboard_records:
+        _draw_centered(screen, font, "No records yet", start_y + 28, MUTED)
+        return
+    for index, record in enumerate(session.leaderboard_records[:5], start=1):
+        label = f"{index}. {record.name} {record.score}"
+        _draw_centered(screen, font, label, start_y + index * 28, MUTED)
 
 
 def _draw_centered(
