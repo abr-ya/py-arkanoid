@@ -6,8 +6,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from arkanoid import resources
+
 MAX_LEADERBOARD_RECORDS = 10
-DEFAULT_LEADERBOARD_PATH = Path("leaderboard.json")
 
 
 @dataclass(frozen=True, slots=True)
@@ -47,8 +48,8 @@ class LeaderboardRecord:
 
 
 class LeaderboardStore:
-    def __init__(self, path: Path | str = DEFAULT_LEADERBOARD_PATH) -> None:
-        self.path = Path(path)
+    def __init__(self, path: Path | str | None = None) -> None:
+        self.path = Path(path) if path is not None else resources.leaderboard_path()
 
     def load_records(self) -> list[LeaderboardRecord]:
         try:
