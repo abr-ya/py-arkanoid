@@ -1,4 +1,5 @@
 from arkanoid.core.game import BRICK_SCORE, SLOW_BALL_MULTIPLIER, create_session
+from arkanoid.core.leaderboard import LeaderboardStore
 from arkanoid.core.levels import (
     DEFAULT_BRICK_ROWS,
     DEFAULT_LEVEL_NAME,
@@ -107,6 +108,32 @@ def test_life_loss_resets_ball_and_final_life_sets_game_over() -> None:
 
     assert session.lives == 0
     assert session.state is GameState.GAME_OVER
+
+
+def test_game_over_score_entry_saves_record_and_allows_restart(tmp_path) -> None:
+    session = create_session(LeaderboardStore(tmp_path / "leaderboard.json"))
+    session.start()
+    session.score = 500
+    session.lives = 1
+    session.ball.attached = False
+    session.ball.y = session.playfield.height + session.ball.radius + 1
+
+    session.update(0)
+
+    assert session.state is GameState.NAME_ENTRY
+    session.enter_score_name_char("a")
+    session.enter_score_name_char("b")
+    session.enter_score_name_char("c")
+    session.submit_score_name()
+
+    assert session.state is GameState.GAME_OVER
+    assert [(record.name, record.score) for record in session.leaderboard_records] == [("ABC", 500)]
+
+    session.start()
+
+    assert session.state is GameState.PLAYING
+    assert session.score == 0
+    assert [(record.name, record.score) for record in session.leaderboard_records] == [("ABC", 500)]
 
 
 def test_valid_level_config_loads_layout_and_settings(tmp_path) -> None:

@@ -29,6 +29,7 @@ dist/
 .env
 .env.*
 *.log
+leaderboard.json
 
 # OS/editor files
 .DS_Store

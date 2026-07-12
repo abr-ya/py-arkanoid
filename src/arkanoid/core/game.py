@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from arkanoid.core.leaderboard import LeaderboardRecord, LeaderboardStore
 from arkanoid.core.levels import LevelConfig, create_bricks_for_level, load_level
 from arkanoid.core.models import (
     ActiveEffect,
@@ -35,15 +36,20 @@ class GameSession:
     paddle: Paddle = field(init=False)
     balls: list[Ball] = field(init=False)
     bricks: list[Brick] = field(init=False)
+    leaderboard_store: LeaderboardStore = field(default_factory=LeaderboardStore)
+    leaderboard_records: list[LeaderboardRecord] = field(default_factory=list)
     bonus_items: list[BonusItem] = field(default_factory=list)
     active_effects: dict[PowerUpType, ActiveEffect] = field(default_factory=dict)
     sticky_charges: int = 0
     lives: int = 3
     score: int = 0
+    score_name: str = ""
     level_clear_timer: float = 0
     wants_quit: bool = False
 
     def __post_init__(self) -> None:
+        if not self.leaderboard_records:
+            self.leaderboard_records = self.leaderboard_store.load_records()
         self.paddle = Paddle(
             x=(self.playfield.width - self.level.paddle_width) / 2,
             y=self.playfield.height - 56,
@@ -63,18 +69,20 @@ class GameSession:
 
     def start(self) -> None:
         if self.state in {GameState.MENU, GameState.GAME_OVER}:
-            fresh = create_session()
+            fresh = create_session(leaderboard_store=self.leaderboard_store)
             self.playfield = fresh.playfield
             self.state = GameState.PLAYING
             self.level = fresh.level
             self.paddle = fresh.paddle
             self.balls = fresh.balls
             self.bricks = fresh.bricks
+            self.leaderboard_records = fresh.leaderboard_records
             self.bonus_items = fresh.bonus_items
             self.active_effects = fresh.active_effects
             self.sticky_charges = fresh.sticky_charges
             self.lives = fresh.lives
             self.score = fresh.score
+            self.score_name = ""
             self.level_clear_timer = 0
             self.wants_quit = False
 
@@ -96,6 +104,24 @@ class GameSession:
         if self.state is GameState.PLAYING:
             for ball in self.balls:
                 ball.launch(self._ball_speed_multiplier())
+
+    def enter_score_name_char(self, value: str) -> None:
+        if self.state is not GameState.NAME_ENTRY or len(self.score_name) >= 3:
+            return
+        if len(value) != 1 or not value.isalnum():
+            return
+        self.score_name += value.upper()
+
+    def delete_score_name_char(self) -> None:
+        if self.state is GameState.NAME_ENTRY:
+            self.score_name = self.score_name[:-1]
+
+    def submit_score_name(self) -> None:
+        if self.state is not GameState.NAME_ENTRY or len(self.score_name) != 3:
+            return
+        record = LeaderboardRecord.create(self.score_name, self.score)
+        self.leaderboard_records = self.leaderboard_store.add_record(record)
+        self.state = GameState.GAME_OVER
 
     def update(self, dt: float, paddle_direction: float = 0) -> None:
         if self.state is GameState.LEVEL_CLEAR:
@@ -225,7 +251,8 @@ class GameSession:
 
         self.lives -= 1
         if self.lives <= 0:
-            self.state = GameState.GAME_OVER
+            self.state = GameState.NAME_ENTRY if self.score > 0 else GameState.GAME_OVER
+            self.score_name = ""
             ball.attached = True
         else:
             self.reset_ball()
@@ -316,5 +343,7 @@ class GameSession:
         )
 
 
-def create_session() -> GameSession:
-    return GameSession()
+def create_session(leaderboard_store: LeaderboardStore | None = None) -> GameSession:
+    if leaderboard_store is None:
+        return GameSession()
+    return GameSession(leaderboard_store=leaderboard_store)

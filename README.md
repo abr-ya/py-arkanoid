@@ -15,6 +15,11 @@ The first level is configured in `levels/level_01.yaml`. Brick row symbols use
 indestructible, and `L` for extra-life bricks. Missing or invalid level files
 fall back to a safe default layout.
 
+## Leaderboard
+
+Local scores are stored in `leaderboard.json` next to the game process. The file
+is local runtime data and is ignored by git.
+
 ## Test
 
 ```bash
