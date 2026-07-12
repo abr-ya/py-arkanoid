@@ -1,6 +1,6 @@
 ## Context
 
-Polish is intentionally delayed until the game mechanics have stopped moving. This keeps visual and feedback work from hiding core bugs.
+Polish is intentionally delayed until distribution, baseline sounds, and the expanded level pack have landed. This keeps visual and usability work focused on the version players are likely to try.
 
 ## Goals / Non-Goals
 
@@ -8,19 +8,19 @@ Polish is intentionally delayed until the game mechanics have stopped moving. Th
 
 - Make the game feel clear, readable, and responsive.
 - Improve feedback for important events.
-- Tune difficulty using real play observations.
+- Add small quality-of-life improvements from play observations.
 
 **Non-Goals:**
 
 - New major mechanics.
 - Rewriting physics.
-- Server or packaging work.
+- Sound-system work, level-pack expansion, server work, or packaging work.
 
 ## Decisions
 
 ### Preserve core contracts
 
-Polish may adjust presentation and constants, but it must not silently change core requirements from earlier changes. Any meaningful gameplay rule change should become its own OpenSpec change.
+Polish may adjust presentation and small usability constants, but it must not silently change core requirements from earlier changes. Any meaningful gameplay rule change should become its own OpenSpec change.
 
 ### Asset approach
 

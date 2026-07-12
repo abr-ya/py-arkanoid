@@ -1,6 +1,6 @@
 ## Why
 
-The eventual leaderboard server is outside this project, but the game should be able to submit and read scores when a server exists. This change adds a failure-tolerant client after local persistence is stable.
+The eventual leaderboard server is outside this project, but the game should be able to submit and read scores when a server exists. This change is deferred until the local, shareable game has builds, baseline sounds, more levels, and polish.
 
 ## What Changes
 

@@ -1,6 +1,6 @@
 ## Context
 
-Local records are the source of truth for offline play. This change adds optional online synchronization without owning or implementing the server.
+Local records are the source of truth for offline play. This later change adds optional online synchronization without owning or implementing the server, after the standalone game is stronger.
 
 ## Goals / Non-Goals
 

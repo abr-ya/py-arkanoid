@@ -6,12 +6,12 @@
 
 ## 2. Usability
 
-- [ ] 2.1 Tune default speeds, paddle width, and starting lives from playtesting.
+- [ ] 2.1 Review playtest observations after the level-pack feature lands.
 - [ ] 2.2 Add concise in-game control hints where they are needed.
 - [ ] 2.3 Ensure text fits and remains readable at the game window size.
 
-## 3. Optional Feedback Assets
+## 3. Visual Assets And Docs
 
-- [ ] 3.1 Decide whether sound effects are in scope for this polish slice.
-- [ ] 3.2 Add lightweight assets only if they improve readability or feedback.
+- [ ] 3.1 Add lightweight visual assets only if they improve readability or feedback.
+- [ ] 3.2 Keep sound and level-content follow-ups out of this polish slice unless they are bug fixes.
 - [ ] 3.3 Update README screenshots or notes if the visual presentation changes materially.

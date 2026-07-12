@@ -18,9 +18,9 @@ The application SHALL provide visible feedback for brick hits, score changes, li
 - **WHEN** the player loses a life
 - **THEN** the player receives clear feedback before the next launch
 
-### Requirement: Tuning supports fair play
-The default gameplay tuning SHALL allow a new player to reasonably keep the ball in play while still increasing challenge across levels.
+### Requirement: Polish preserves fair play
+The polish pass SHALL preserve the accepted difficulty curve and SHALL keep early play approachable.
 
 #### Scenario: Start first level
 - **WHEN** a new session begins
-- **THEN** the initial speed and paddle width are suitable for learning the controls
+- **THEN** the initial presentation and controls remain suitable for learning the game
