@@ -36,6 +36,10 @@ def main() -> int:
         return 2
 
     add_data = f"{root / 'levels'}{os.pathsep}levels"
+    add_sounds = (
+        f"{root / 'src' / 'arkanoid' / 'assets' / 'sounds'}"
+        f"{os.pathsep}src/arkanoid/assets/sounds"
+    )
     command = [
         "--name",
         "arkanoid",
@@ -50,6 +54,8 @@ def main() -> int:
         str(build_dir),
         "--add-data",
         add_data,
+        "--add-data",
+        add_sounds,
     ]
     if not args.console:
         command.append("--windowed")

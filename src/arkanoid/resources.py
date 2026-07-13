@@ -30,6 +30,10 @@ def levels_dir() -> Path:
     return resource_path("levels")
 
 
+def sounds_dir() -> Path:
+    return resource_path("src", "arkanoid", "assets", "sounds")
+
+
 def user_data_dir() -> Path:
     override = os.environ.get("ARKANOID_DATA_DIR")
     if override:

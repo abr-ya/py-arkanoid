@@ -5,8 +5,10 @@ from typing import Iterable
 import pygame
 
 from arkanoid.core.game import GameSession, create_session
+from arkanoid.core.events import SoundEvent
 from arkanoid.core.models import PowerUpType
 from arkanoid.core.state import GameState
+from arkanoid.sound import PygameSoundService, SoundService
 
 WIDTH = 800
 HEIGHT = 600
@@ -42,6 +44,7 @@ def run() -> None:
     font = pygame.font.Font(None, 30)
     title_font = pygame.font.Font(None, 56)
     session = create_session()
+    sound_service = PygameSoundService.create()
 
     running = True
     while running:
@@ -51,12 +54,14 @@ def run() -> None:
                 running = False
             elif event.type == pygame.KEYDOWN:
                 _handle_keydown(event, session)
+                _dispatch_sound_events(session, sound_service)
 
         keys = pygame.key.get_pressed()
         direction = float(keys[pygame.K_RIGHT] or keys[pygame.K_d]) - float(
             keys[pygame.K_LEFT] or keys[pygame.K_a]
         )
         session.update(dt, direction)
+        _dispatch_sound_events(session, sound_service)
 
         if session.wants_quit:
             running = False
@@ -91,6 +96,11 @@ def _handle_keydown(event: pygame.event.Event, session: GameSession) -> None:
         session.restart()
     elif key == pygame.K_SPACE and session.state is GameState.PLAYING:
         session.launch_ball()
+
+
+def _dispatch_sound_events(session: GameSession, sound_service: SoundService) -> None:
+    for sound_event in session.pull_sound_events():
+        sound_service.play(sound_event)
 
 
 def _draw(

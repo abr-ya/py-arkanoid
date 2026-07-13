@@ -28,6 +28,12 @@ game process. In packaged builds, local scores are stored in the user's app data
 directory so the game does not need to write next to the executable. Set
 `ARKANOID_DATA_DIR` to override the writable data directory.
 
+## Sound
+
+Short gameplay sound effects are loaded from packaged resources. Set
+`ARKANOID_SOUND=0` to run silently for quiet play, tests, or systems without
+working audio output.
+
 ## Packaged Builds
 
 Install build dependencies:

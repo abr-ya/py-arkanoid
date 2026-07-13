@@ -1,4 +1,5 @@
 from arkanoid.core.game import BRICK_SCORE, SLOW_BALL_MULTIPLIER, create_session
+from arkanoid.core.events import SoundEvent
 from arkanoid.core.leaderboard import LeaderboardStore
 from arkanoid.core.levels import (
     DEFAULT_BRICK_ROWS,
@@ -45,6 +46,7 @@ def test_wall_reflection() -> None:
     session.update(0)
 
     assert session.ball.vx > 0
+    assert session.pull_sound_events() == [SoundEvent.COLLISION]
 
     session.ball.x = 100
     session.ball.y = session.ball.radius - 1
@@ -53,6 +55,7 @@ def test_wall_reflection() -> None:
     session.update(0)
 
     assert session.ball.vy > 0
+    assert session.pull_sound_events() == [SoundEvent.COLLISION]
 
 
 def test_paddle_reflection_uses_hit_offset() -> None:
@@ -431,6 +434,10 @@ def test_level_clear_starts_transition_and_next_level_preserves_score() -> None:
 
     assert session.state is GameState.LEVEL_CLEAR
     assert session.score == BRICK_SCORE
+    assert session.pull_sound_events() == [
+        SoundEvent.BRICK_BREAK,
+        SoundEvent.LEVEL_COMPLETE,
+    ]
 
     session.update(1)
 
@@ -439,3 +446,23 @@ def test_level_clear_starts_transition_and_next_level_preserves_score() -> None:
     assert session.score == BRICK_SCORE
     assert session.lives == 3
     assert session.bricks
+
+
+def test_launch_ball_records_launch_sound_once() -> None:
+    session = create_session()
+    session.start()
+
+    session.launch_ball()
+    session.launch_ball()
+
+    assert session.pull_sound_events() == [SoundEvent.LAUNCH]
+
+
+def test_catching_bonus_records_power_up_pickup_sound() -> None:
+    session = create_session()
+    session.start()
+    session.bonus_items = [BonusItem(x=session.paddle.x, y=session.paddle.y, type=PowerUpType.WIDE)]
+
+    session.update(0)
+
+    assert session.pull_sound_events() == [SoundEvent.POWER_UP_PICKUP]

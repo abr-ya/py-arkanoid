@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from arkanoid.core.events import SoundEvent
 from arkanoid.core.leaderboard import LeaderboardRecord, LeaderboardStore
 from arkanoid.core.levels import LevelConfig, create_bricks_for_level, load_level
 from arkanoid.core.models import (
@@ -46,6 +47,7 @@ class GameSession:
     score_name: str = ""
     level_clear_timer: float = 0
     wants_quit: bool = False
+    sound_events: list[SoundEvent] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         if not self.leaderboard_records:
@@ -85,6 +87,7 @@ class GameSession:
             self.score_name = ""
             self.level_clear_timer = 0
             self.wants_quit = False
+            self.sound_events = []
 
     def restart(self) -> None:
         self.state = GameState.GAME_OVER
@@ -102,8 +105,18 @@ class GameSession:
 
     def launch_ball(self) -> None:
         if self.state is GameState.PLAYING:
+            launched = False
             for ball in self.balls:
+                was_attached = ball.attached
                 ball.launch(self._ball_speed_multiplier())
+                launched = launched or (was_attached and not ball.attached)
+            if launched:
+                self._record_sound_event(SoundEvent.LAUNCH)
+
+    def pull_sound_events(self) -> list[SoundEvent]:
+        events = self.sound_events.copy()
+        self.sound_events.clear()
+        return events
 
     def enter_score_name_char(self, value: str) -> None:
         if self.state is not GameState.NAME_ENTRY or len(self.score_name) >= 3:
@@ -156,13 +169,16 @@ class GameSession:
         if ball.x - ball.radius <= 0 and ball.vx < 0:
             ball.x = ball.radius
             ball.vx = abs(ball.vx)
+            self._record_sound_event(SoundEvent.COLLISION)
         elif ball.x + ball.radius >= self.playfield.width and ball.vx > 0:
             ball.x = self.playfield.width - ball.radius
             ball.vx = -abs(ball.vx)
+            self._record_sound_event(SoundEvent.COLLISION)
 
         if ball.y - ball.radius <= 0 and ball.vy < 0:
             ball.y = ball.radius
             ball.vy = abs(ball.vy)
+            self._record_sound_event(SoundEvent.COLLISION)
 
     def _handle_paddle_collision(self, ball: Ball) -> None:
         if ball.vy <= 0 or not ball.rect.overlaps(self.paddle.rect):
@@ -171,6 +187,7 @@ class GameSession:
         if self.sticky_charges > 0:
             self.sticky_charges -= 1
             ball.attach_to(self.paddle)
+            self._record_sound_event(SoundEvent.COLLISION)
             return
 
         offset = (ball.x - self.paddle.center_x) / (self.paddle.width / 2)
@@ -179,6 +196,7 @@ class GameSession:
         ball.y = self.paddle.y - ball.radius
         ball.vx = offset * 300 * speed_multiplier
         ball.vy = -360 * speed_multiplier
+        self._record_sound_event(SoundEvent.COLLISION)
 
     def _handle_brick_collision(self, ball: Ball) -> None:
         ball_rect = ball.rect
@@ -190,11 +208,14 @@ class GameSession:
             if brick.hit():
                 self.bricks.remove(brick)
                 self.score += brick.score
+                self._record_sound_event(SoundEvent.BRICK_BREAK)
                 if brick.grants_extra_life:
                     self.lives += 1
                 self._spawn_bonus_from_brick(brick)
                 if self.is_level_cleared():
                     self._start_level_clear()
+            else:
+                self._record_sound_event(SoundEvent.COLLISION)
             break
 
     def is_level_cleared(self) -> bool:
@@ -206,6 +227,7 @@ class GameSession:
         self.balls = [self.ball]
         self.ball.attached = True
         self.bonus_items.clear()
+        self._record_sound_event(SoundEvent.LEVEL_COMPLETE)
 
     def _update_level_clear(self, dt: float) -> None:
         self.level_clear_timer -= dt
@@ -278,6 +300,7 @@ class GameSession:
             if item.rect.overlaps(self.paddle.rect):
                 self.bonus_items.remove(item)
                 self._activate_power_up(item.type)
+                self._record_sound_event(SoundEvent.POWER_UP_PICKUP)
             elif item.y > self.playfield.height:
                 self.bonus_items.remove(item)
 
@@ -341,6 +364,9 @@ class GameSession:
                 attached=False,
             )
         )
+
+    def _record_sound_event(self, event: SoundEvent) -> None:
+        self.sound_events.append(event)
 
 
 def create_session(leaderboard_store: LeaderboardStore | None = None) -> GameSession:
