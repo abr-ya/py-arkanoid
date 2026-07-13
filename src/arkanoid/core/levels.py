@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from arkanoid import resources
 from arkanoid.core.models import Brick, BrickType, PowerUpType, create_brick
 
 DEFAULT_LEVEL_NUMBER = 1
@@ -55,7 +56,7 @@ def default_level(level_number: int = DEFAULT_LEVEL_NUMBER) -> LevelConfig:
 
 
 def default_levels_dir() -> Path:
-    return Path.cwd() / "levels"
+    return resources.levels_dir()
 
 
 def load_level(level_number: int = DEFAULT_LEVEL_NUMBER, levels_dir: Path | None = None) -> LevelConfig:
