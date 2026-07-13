@@ -1,7 +1,7 @@
 number: 1
 name: "Training Wall"
 ball_speed_multiplier: 1.0
-paddle_width: 96
+paddle_width: 112
 bricks:
   left: 44
   top: 72
@@ -9,7 +9,7 @@ bricks:
   height: 22
   gap: 8
   rows:
-    - "111111111"
-    - "11W1F1M1T"
-    - "111111111"
-    - "111111111"
+    - "  11111  "
+    - " 1W111F1 "
+    - "  11111  "
+    - "   111   "

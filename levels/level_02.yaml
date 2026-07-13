@@ -1,0 +1,16 @@
+number: 2
+name: "Brick Garden"
+ball_speed_multiplier: 1.04
+paddle_width: 104
+bricks:
+  left: 44
+  top: 68
+  width: 72
+  height: 22
+  gap: 8
+  rows:
+    - "111111111"
+    - "1S1W1F1S1"
+    - "111111111"
+    - " 11M1T11 "
+    - "  11111  "
