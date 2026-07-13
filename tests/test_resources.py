@@ -6,6 +6,8 @@ from arkanoid import resources
 def test_development_resource_paths_use_project_root() -> None:
     assert resources.resource_path("levels").name == "levels"
     assert (resources.resource_path("levels") / "level_01.yaml").exists()
+    assert resources.sounds_dir().name == "sounds"
+    assert (resources.sounds_dir() / "launch.wav").exists()
 
 
 def test_development_leaderboard_path_uses_current_working_directory(monkeypatch, tmp_path) -> None:
@@ -20,3 +22,4 @@ def test_frozen_resource_paths_use_pyinstaller_meipass(monkeypatch, tmp_path) ->
     monkeypatch.setattr(sys, "_MEIPASS", str(tmp_path), raising=False)
 
     assert resources.resource_path("levels") == tmp_path / "levels"
+    assert resources.sounds_dir() == tmp_path / "src" / "arkanoid" / "assets" / "sounds"

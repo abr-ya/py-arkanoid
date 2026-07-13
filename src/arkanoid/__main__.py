@@ -4,7 +4,7 @@ import argparse
 
 from arkanoid.core.game import create_session
 from arkanoid.pygame_app import run
-from arkanoid.resources import leaderboard_path, levels_dir
+from arkanoid.resources import leaderboard_path, levels_dir, sounds_dir
 
 
 def main() -> None:
@@ -21,6 +21,7 @@ def main() -> None:
             "arkanoid smoke ok: "
             f"level={session.level.number} "
             f"levels_dir={levels_dir()} "
+            f"sounds_dir={sounds_dir()} "
             f"leaderboard={leaderboard_path()}"
         )
         return
