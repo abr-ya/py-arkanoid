@@ -13,6 +13,7 @@ Local records are the source of truth for offline play. This later change adds o
 **Non-Goals:**
 
 - Implementing the FastAPI server.
+- Owning server-side score persistence.
 - Authentication, accounts, or score verification.
 - Blocking gameplay on network activity.
 
