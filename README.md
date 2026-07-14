@@ -16,10 +16,13 @@ python -m arkanoid --smoke
 
 ## Levels
 
-The first level is configured in `levels/level_01.yaml`. Brick row symbols use
-`1`/`N` for normal, `2`/`S` for strong, `B` for bonus-marker, `X` for
-indestructible, and `L` for extra-life bricks. Missing or invalid level files
-fall back to a safe default layout.
+The built-in level pack is configured in `levels/level_01.yaml` through
+`levels/level_05.yaml`. Level 1 is an approachable training layout, and later
+levels add denser brick patterns, strong bricks, indestructible obstacles,
+slightly faster ball movement, and narrower paddle settings. Brick row symbols
+use `1`/`N` for normal, `2`/`S` for strong, `B` for bonus-marker, `W`/`F`/`M`/`T`
+for specific power-up bricks, `X` for indestructible, and `L` for extra-life
+bricks. Missing or invalid level files fall back to a safe default layout.
 
 ## Leaderboard
 

@@ -16,8 +16,9 @@ Use this checklist after downloading or building a packaged artifact.
 - Start a game with Enter or Space.
 - Confirm launch, collision, brick-break, power-up, and level-clear moments play short sounds when audio is available.
 - Relaunch with `ARKANOID_SOUND=0` and confirm gameplay continues silently.
-- Confirm level 1 loads with bricks visible.
+- Confirm level 1 loads with bricks visible and a forgiving paddle width.
 - Break at least one brick and confirm score changes.
+- Clear at least one level when practical and confirm the next built-in level loads.
 - Lose all lives or enter game-over flow and confirm the app does not crash when reading or writing local scores.
 - Close the game from the window close button or with `q`.
 

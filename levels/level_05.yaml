@@ -1,0 +1,17 @@
+number: 5
+name: "Final Press"
+ball_speed_multiplier: 1.16
+paddle_width: 92
+bricks:
+  left: 44
+  top: 56
+  width: 72
+  height: 22
+  gap: 8
+  rows:
+    - "2X22222X2"
+    - "21W1S1F12"
+    - "222X1X222"
+    - "1T11211M1"
+    - "222111222"
+    - " 1X222X1 "

@@ -1,0 +1,16 @@
+number: 4
+name: "Obstacle Lane"
+ball_speed_multiplier: 1.12
+paddle_width: 96
+bricks:
+  left: 44
+  top: 60
+  width: 72
+  height: 22
+  gap: 8
+  rows:
+    - "11X111X11"
+    - "1S1W1F1S1"
+    - "111X1X111"
+    - "1T11111M1"
+    - "11X222X11"

@@ -1,0 +1,16 @@
+number: 3
+name: "Heavy Blocks"
+ball_speed_multiplier: 1.08
+paddle_width: 100
+bricks:
+  left: 44
+  top: 64
+  width: 72
+  height: 22
+  gap: 8
+  rows:
+    - "222222222"
+    - "21W111F12"
+    - "111222111"
+    - "21M111T12"
+    - "222111222"

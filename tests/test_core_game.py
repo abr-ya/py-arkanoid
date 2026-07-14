@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from arkanoid.core.game import BRICK_SCORE, SLOW_BALL_MULTIPLIER, create_session
 from arkanoid.core.events import SoundEvent
 from arkanoid.core.leaderboard import LeaderboardStore
@@ -9,6 +11,8 @@ from arkanoid.core.levels import (
 )
 from arkanoid.core.models import BonusItem, Brick, BrickType, PowerUpType, create_brick
 from arkanoid.core.state import GameState, toggle_pause
+
+SHIPPED_LEVEL_NUMBERS = (1, 2, 3, 4, 5)
 
 
 def test_state_transitions_start_pause_and_restart() -> None:
@@ -232,7 +236,52 @@ def test_session_uses_loaded_level_layout() -> None:
 
     assert session.level.name == DEFAULT_LEVEL_NAME
     assert session.paddle.width == session.level.paddle_width
-    assert len(session.bricks) == len(DEFAULT_BRICK_ROWS) * len(DEFAULT_BRICK_ROWS[0])
+    assert len(session.bricks) == len(create_bricks_for_level(session.level))
+
+
+def test_shipped_level_pack_loads_all_builtin_levels() -> None:
+    levels_dir = Path("levels")
+    level_files = sorted(levels_dir.glob("level_*.yaml"))
+
+    assert len(level_files) == len(SHIPPED_LEVEL_NUMBERS)
+
+    names: list[str] = []
+    speed_multipliers: list[float] = []
+    paddle_widths: list[float] = []
+
+    for number in SHIPPED_LEVEL_NUMBERS:
+        level = load_level(number, levels_dir=levels_dir)
+        bricks = create_bricks_for_level(level)
+
+        assert level.number == number
+        assert level.bricks.rows != DEFAULT_BRICK_ROWS
+        assert bricks
+        assert any(brick.destructible for brick in bricks)
+        names.append(level.name)
+        speed_multipliers.append(level.ball_speed_multiplier)
+        paddle_widths.append(level.paddle_width)
+
+    assert len(set(names)) == len(SHIPPED_LEVEL_NUMBERS)
+    assert speed_multipliers == sorted(speed_multipliers)
+    assert paddle_widths[0] > paddle_widths[-1]
+
+
+def test_shipped_level_progression_loads_next_level_sequence() -> None:
+    session = create_session()
+
+    for number, next_number in zip(SHIPPED_LEVEL_NUMBERS, SHIPPED_LEVEL_NUMBERS[1:]):
+        session.level = load_level(number)
+        session.state = GameState.LEVEL_CLEAR
+        session.level_clear_timer = 0
+
+        session.update(0)
+
+        expected_next = load_level(next_number)
+        assert session.state is GameState.PLAYING
+        assert session.level.number == expected_next.number
+        assert session.level.name == expected_next.name
+        assert session.paddle.width == expected_next.paddle_width
+        assert session.bricks
 
 
 def test_strong_brick_requires_two_hits() -> None:
