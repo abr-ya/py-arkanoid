@@ -176,6 +176,18 @@ def _draw_hud(screen: pygame.Surface, session: GameSession, font: pygame.font.Fo
     if effect_labels:
         effects = _render_fit(font, "  ".join(effect_labels), WARNING, WIDTH - TEXT_MARGIN * 2)
         screen.blit(effects, (18, 42))
+    else:
+        level_label = _render_fit(
+            font,
+            f"Level {session.level.number}: {session.level.name}",
+            MUTED,
+            WIDTH // 2 - TEXT_MARGIN,
+        )
+        screen.blit(level_label, (18, 42))
+
+    if any(ball.attached for ball in session.balls):
+        launch_hint = _render_fit(font, "Space to launch", ACCENT, WIDTH // 2 - TEXT_MARGIN)
+        screen.blit(launch_hint, (WIDTH - launch_hint.get_width() - 18, 42))
 
 
 def _draw_entities(screen: pygame.Surface, session: GameSession) -> None:
@@ -264,9 +276,8 @@ def _render_fit(
     if rendered.get_width() <= max_width:
         return rendered
 
-    shortened = text
-    while len(shortened) > 1:
-        shortened = shortened[:-2].rstrip() + "..."
+    for end in range(len(text) - 1, 0, -1):
+        shortened = text[:end].rstrip() + "..."
         rendered = font.render(shortened, True, color)
         if rendered.get_width() <= max_width:
             return rendered

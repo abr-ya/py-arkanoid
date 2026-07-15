@@ -6,8 +6,8 @@
 
 ## 2. Controls And Screens
 
-- [ ] 2.1 Review the current level-pack UI and note only readability issues in this slice.
-- [ ] 2.2 Add concise in-game control hints where they are needed.
+- [x] 2.1 Review the current level-pack UI and note only readability issues in this slice.
+- [x] 2.2 Add concise in-game control hints where they are needed.
 - [ ] 2.3 Verify menu, gameplay, pause, level-clear, and game-over screens at the default window size.
 
 ## 3. Assets And Docs
