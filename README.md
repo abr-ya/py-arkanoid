@@ -14,6 +14,14 @@ To verify resource loading without opening the game window:
 python -m arkanoid --smoke
 ```
 
+## Controls
+
+- Move: `A`/`D` or arrow keys.
+- Launch: `Space`.
+- Pause/resume: `Esc`.
+- Restart after game over: `Enter` or `Space`.
+- Quit: `Q`.
+
 ## Levels
 
 The built-in level pack is configured in `levels/level_01.yaml` through

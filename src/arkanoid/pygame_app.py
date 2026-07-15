@@ -158,7 +158,7 @@ def _draw_hud(screen: pygame.Surface, session: GameSession, font: pygame.font.Fo
 
     label = _render_fit(
         font,
-        f"Score {session.score}    Lives {session.lives}    Level {session.level.number}",
+        f"Score {session.score}    Lives {session.lives}    Level {_level_progress_label(session)}",
         FOREGROUND,
         WIDTH // 2 - TEXT_MARGIN,
     )
@@ -179,7 +179,7 @@ def _draw_hud(screen: pygame.Surface, session: GameSession, font: pygame.font.Fo
     else:
         level_label = _render_fit(
             font,
-            f"Level {session.level.number}: {session.level.name}",
+            f"Level {_level_progress_label(session)}: {session.level.name}",
             MUTED,
             WIDTH // 2 - TEXT_MARGIN,
         )
@@ -230,6 +230,12 @@ def _draw_entities(screen: pygame.Surface, session: GameSession) -> None:
             width=1,
             border_radius=3,
         )
+
+
+def _level_progress_label(session: GameSession) -> str:
+    if session.total_levels <= 0:
+        return str(session.level.number)
+    return f"{session.level.number}/{session.total_levels}"
 
 
 def _draw_leaderboard(

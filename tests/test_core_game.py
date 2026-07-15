@@ -6,6 +6,7 @@ from arkanoid.core.leaderboard import LeaderboardStore
 from arkanoid.core.levels import (
     DEFAULT_BRICK_ROWS,
     DEFAULT_LEVEL_NAME,
+    count_available_levels,
     create_bricks_for_level,
     load_level,
 )
@@ -235,8 +236,18 @@ def test_session_uses_loaded_level_layout() -> None:
     session = create_session()
 
     assert session.level.name == DEFAULT_LEVEL_NAME
+    assert session.total_levels == len(SHIPPED_LEVEL_NUMBERS)
     assert session.paddle.width == session.level.paddle_width
     assert len(session.bricks) == len(create_bricks_for_level(session.level))
+
+
+def test_count_available_levels_counts_numbered_level_files(tmp_path: Path) -> None:
+    (tmp_path / "level_01.yaml").write_text("", encoding="utf-8")
+    (tmp_path / "level_02.yaml").write_text("", encoding="utf-8")
+    (tmp_path / "level_extra.yaml").write_text("", encoding="utf-8")
+    (tmp_path / "notes.txt").write_text("", encoding="utf-8")
+
+    assert count_available_levels(tmp_path) == 2
 
 
 def test_shipped_level_pack_loads_all_builtin_levels() -> None:
