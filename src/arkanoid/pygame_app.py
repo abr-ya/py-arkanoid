@@ -14,26 +14,32 @@ WIDTH = 800
 HEIGHT = 600
 FPS = 60
 
-BACKGROUND = (18, 20, 28)
-FOREGROUND = (234, 238, 246)
-MUTED = (144, 153, 166)
-PADDLE = (76, 201, 240)
-BALL = (255, 209, 102)
+BACKGROUND = (12, 15, 24)
+SURFACE = (26, 32, 45)
+SURFACE_LIGHT = (40, 48, 65)
+FOREGROUND = (244, 247, 252)
+MUTED = (177, 187, 202)
+ACCENT = (116, 214, 146)
+WARNING = (255, 216, 102)
+PADDLE = (84, 190, 255)
+BALL = (255, 231, 135)
 BONUS_COLORS = {
-    PowerUpType.WIDE: (76, 201, 240),
-    PowerUpType.SLOW: (118, 120, 237),
-    PowerUpType.MULTI: (255, 209, 102),
-    PowerUpType.STICKY: (6, 214, 160),
+    PowerUpType.WIDE: (84, 190, 255),
+    PowerUpType.SLOW: (178, 132, 255),
+    PowerUpType.MULTI: (255, 216, 102),
+    PowerUpType.STICKY: (116, 214, 146),
 }
-BRICK_COLORS = [(239, 71, 111), (255, 159, 67), (6, 214, 160), (118, 120, 237)]
+BRICK_COLORS = [(248, 88, 108), (255, 174, 82), (84, 190, 255), (178, 132, 255)]
 BRICK_STATE_COLORS = {
-    "normal": (239, 71, 111),
-    "strong": (255, 159, 67),
-    "strong-damaged": (255, 209, 102),
-    "bonus": (118, 120, 237),
-    "indestructible": (144, 153, 166),
-    "extra-life": (6, 214, 160),
+    "normal": (248, 88, 108),
+    "strong": (255, 174, 82),
+    "strong-damaged": (255, 216, 102),
+    "bonus": (178, 132, 255),
+    "indestructible": (132, 145, 162),
+    "extra-life": (116, 214, 146),
 }
+HUD_HEIGHT = 76
+TEXT_MARGIN = 36
 
 
 def run() -> None:
@@ -136,8 +142,19 @@ def _draw(
 
 
 def _draw_hud(screen: pygame.Surface, session: GameSession, font: pygame.font.Font) -> None:
-    label = font.render(f"Score: {session.score}    Lives: {session.lives}", True, FOREGROUND)
+    pygame.draw.rect(screen, SURFACE, pygame.Rect(0, 0, WIDTH, HUD_HEIGHT))
+    pygame.draw.line(screen, SURFACE_LIGHT, (0, HUD_HEIGHT), (WIDTH, HUD_HEIGHT), 2)
+
+    label = font.render(
+        f"Score {session.score}    Lives {session.lives}    Level {session.level.number}",
+        True,
+        FOREGROUND,
+    )
     screen.blit(label, (18, 16))
+
+    hint = font.render("Move A/D or arrows    Space launch    Esc pause", True, MUTED)
+    screen.blit(hint, (WIDTH - hint.get_width() - 18, 16))
+
     effect_labels = [
         f"{effect.type.value.upper()} {max(0, effect.remaining):.0f}s"
         for effect in session.active_effects.values()
@@ -145,7 +162,7 @@ def _draw_hud(screen: pygame.Surface, session: GameSession, font: pygame.font.Fo
     if session.sticky_charges:
         effect_labels.append(f"STICKY x{session.sticky_charges}")
     if effect_labels:
-        effects = font.render("  ".join(effect_labels), True, MUTED)
+        effects = font.render("  ".join(effect_labels), True, WARNING)
         screen.blit(effects, (18, 42))
 
 
@@ -157,6 +174,13 @@ def _draw_entities(screen: pygame.Surface, session: GameSession) -> None:
             BALL,
             (round(ball.x), round(ball.y)),
             round(ball.radius),
+        )
+        pygame.draw.circle(
+            screen,
+            FOREGROUND,
+            (round(ball.x), round(ball.y)),
+            round(ball.radius),
+            width=1,
         )
     for item in session.bonus_items:
         pygame.draw.rect(
@@ -173,6 +197,13 @@ def _draw_entities(screen: pygame.Surface, session: GameSession) -> None:
                 BRICK_COLORS[index // 9 % len(BRICK_COLORS)],
             ),
             _to_pygame_rect(brick.rect),
+            border_radius=3,
+        )
+        pygame.draw.rect(
+            screen,
+            BACKGROUND,
+            _to_pygame_rect(brick.rect),
+            width=1,
             border_radius=3,
         )
 
