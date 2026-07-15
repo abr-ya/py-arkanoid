@@ -2,7 +2,7 @@
 
 - [x] 1.1 Improve color palette and contrast for bricks, paddle, ball, and HUD.
 - [x] 1.2 Add clearer menu, pause, level-clear, and game-over presentation.
-- [ ] 1.3 Ensure text fits and remains readable at the game window size.
+- [x] 1.3 Ensure text fits and remains readable at the game window size.
 
 ## 2. Controls And Screens
 

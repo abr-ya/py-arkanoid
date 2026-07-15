@@ -119,10 +119,10 @@ def _draw(
 
     if session.state is GameState.MENU:
         _draw_overlay_panel(screen, HEIGHT / 2 - 118, 236)
-        _draw_centered(screen, title_font, "PY ARKANOID", HEIGHT / 2 - 66, FOREGROUND)
-        _draw_centered(screen, font, "Break every brick. Keep the ball alive.", HEIGHT / 2 - 8, MUTED)
-        _draw_centered(screen, font, "Enter or Space to start", HEIGHT / 2 + 36, ACCENT)
-        _draw_centered(screen, font, "Move: A/D or arrows    Launch: Space", HEIGHT / 2 + 76, MUTED)
+        _draw_centered_fit(screen, title_font, "PY ARKANOID", HEIGHT / 2 - 66, FOREGROUND)
+        _draw_centered_fit(screen, font, "Break every brick. Keep the ball alive.", HEIGHT / 2 - 8, MUTED)
+        _draw_centered_fit(screen, font, "Enter or Space to start", HEIGHT / 2 + 36, ACCENT)
+        _draw_centered_fit(screen, font, "Move: A/D or arrows    Launch: Space", HEIGHT / 2 + 76, MUTED)
         return
 
     _draw_hud(screen, session, font)
@@ -130,40 +130,41 @@ def _draw(
 
     if session.state is GameState.PAUSED:
         _draw_overlay_panel(screen, HEIGHT / 2 - 84, 168)
-        _draw_centered(screen, title_font, "PAUSED", HEIGHT / 2 - 34, FOREGROUND)
-        _draw_centered(screen, font, "Esc to resume", HEIGHT / 2 + 18, ACCENT)
-        _draw_centered(screen, font, "Q to quit", HEIGHT / 2 + 54, MUTED)
+        _draw_centered_fit(screen, title_font, "PAUSED", HEIGHT / 2 - 34, FOREGROUND)
+        _draw_centered_fit(screen, font, "Esc to resume", HEIGHT / 2 + 18, ACCENT)
+        _draw_centered_fit(screen, font, "Q to quit", HEIGHT / 2 + 54, MUTED)
     elif session.state is GameState.LEVEL_CLEAR:
         _draw_overlay_panel(screen, HEIGHT / 2 - 76, 152)
-        _draw_centered(screen, title_font, "LEVEL CLEAR", HEIGHT / 2 - 24, ACCENT)
-        _draw_centered(screen, font, "Next level loading", HEIGHT / 2 + 30, MUTED)
+        _draw_centered_fit(screen, title_font, "LEVEL CLEAR", HEIGHT / 2 - 24, ACCENT)
+        _draw_centered_fit(screen, font, "Next level loading", HEIGHT / 2 + 30, MUTED)
     elif session.state is GameState.NAME_ENTRY:
         _draw_overlay_panel(screen, HEIGHT / 2 - 132, 242)
-        _draw_centered(screen, title_font, "NEW SCORE", HEIGHT / 2 - 90, FOREGROUND)
-        _draw_centered(screen, font, f"Final score: {session.score}", HEIGHT / 2 - 38, MUTED)
-        _draw_centered(screen, font, f"Name: {session.score_name:<3}", HEIGHT / 2 + 6, ACCENT)
-        _draw_centered(screen, font, "Type 3 letters, then press Enter", HEIGHT / 2 + 48, MUTED)
+        _draw_centered_fit(screen, title_font, "NEW SCORE", HEIGHT / 2 - 90, FOREGROUND)
+        _draw_centered_fit(screen, font, f"Final score: {session.score}", HEIGHT / 2 - 38, MUTED)
+        _draw_centered_fit(screen, font, f"Name: {session.score_name:<3}", HEIGHT / 2 + 6, ACCENT)
+        _draw_centered_fit(screen, font, "Type 3 letters, then press Enter", HEIGHT / 2 + 48, MUTED)
     elif session.state is GameState.GAME_OVER:
         _draw_overlay_panel(screen, HEIGHT / 2 - 152, 286)
-        _draw_centered(screen, title_font, "GAME OVER", HEIGHT / 2 - 104, FOREGROUND)
-        _draw_centered(screen, font, f"Final score: {session.score}", HEIGHT / 2 - 50, MUTED)
+        _draw_centered_fit(screen, title_font, "GAME OVER", HEIGHT / 2 - 104, FOREGROUND)
+        _draw_centered_fit(screen, font, f"Final score: {session.score}", HEIGHT / 2 - 50, MUTED)
         _draw_leaderboard(screen, session, font, HEIGHT / 2 - 12)
-        _draw_centered(screen, font, "Enter or Space to play again", HEIGHT - 72, ACCENT)
-        _draw_centered(screen, font, "Q to quit", HEIGHT - 42, MUTED)
+        _draw_centered_fit(screen, font, "Enter or Space to play again", HEIGHT - 72, ACCENT)
+        _draw_centered_fit(screen, font, "Q to quit", HEIGHT - 42, MUTED)
 
 
 def _draw_hud(screen: pygame.Surface, session: GameSession, font: pygame.font.Font) -> None:
     pygame.draw.rect(screen, SURFACE, pygame.Rect(0, 0, WIDTH, HUD_HEIGHT))
     pygame.draw.line(screen, SURFACE_LIGHT, (0, HUD_HEIGHT), (WIDTH, HUD_HEIGHT), 2)
 
-    label = font.render(
+    label = _render_fit(
+        font,
         f"Score {session.score}    Lives {session.lives}    Level {session.level.number}",
-        True,
         FOREGROUND,
+        WIDTH // 2 - TEXT_MARGIN,
     )
     screen.blit(label, (18, 16))
 
-    hint = font.render("Move A/D or arrows    Space launch    Esc pause", True, MUTED)
+    hint = _render_fit(font, "A/D or arrows move    Space launch    Esc pause", MUTED, WIDTH // 2 - TEXT_MARGIN)
     screen.blit(hint, (WIDTH - hint.get_width() - 18, 16))
 
     effect_labels = [
@@ -173,7 +174,7 @@ def _draw_hud(screen: pygame.Surface, session: GameSession, font: pygame.font.Fo
     if session.sticky_charges:
         effect_labels.append(f"STICKY x{session.sticky_charges}")
     if effect_labels:
-        effects = font.render("  ".join(effect_labels), True, WARNING)
+        effects = _render_fit(font, "  ".join(effect_labels), WARNING, WIDTH - TEXT_MARGIN * 2)
         screen.blit(effects, (18, 42))
 
 
@@ -225,13 +226,13 @@ def _draw_leaderboard(
     font: pygame.font.Font,
     start_y: float,
 ) -> None:
-    _draw_centered(screen, font, "TOP SCORES", start_y, FOREGROUND)
+    _draw_centered_fit(screen, font, "TOP SCORES", start_y, FOREGROUND)
     if not session.leaderboard_records:
-        _draw_centered(screen, font, "No records yet", start_y + 28, MUTED)
+        _draw_centered_fit(screen, font, "No records yet", start_y + 28, MUTED)
         return
     for index, record in enumerate(session.leaderboard_records[:5], start=1):
         label = f"{index}. {record.name} {record.score}"
-        _draw_centered(screen, font, label, start_y + index * 28, MUTED)
+        _draw_centered_fit(screen, font, label, start_y + index * 28, MUTED)
 
 
 def _draw_overlay_panel(screen: pygame.Surface, y: float, height: float) -> None:
@@ -240,16 +241,36 @@ def _draw_overlay_panel(screen: pygame.Surface, y: float, height: float) -> None
     pygame.draw.rect(screen, SURFACE_LIGHT, panel, width=2, border_radius=10)
 
 
-def _draw_centered(
+def _draw_centered_fit(
     screen: pygame.Surface,
     font: pygame.font.Font,
     text: str,
     y: float,
     color: tuple[int, int, int],
+    max_width: int = WIDTH - TEXT_MARGIN * 2,
 ) -> None:
-    rendered = font.render(text, True, color)
+    rendered = _render_fit(font, text, color, max_width)
     rect = rendered.get_rect(center=(WIDTH / 2, y))
     screen.blit(rendered, rect)
+
+
+def _render_fit(
+    font: pygame.font.Font,
+    text: str,
+    color: tuple[int, int, int],
+    max_width: int,
+) -> pygame.Surface:
+    rendered = font.render(text, True, color)
+    if rendered.get_width() <= max_width:
+        return rendered
+
+    shortened = text
+    while len(shortened) > 1:
+        shortened = shortened[:-2].rstrip() + "..."
+        rendered = font.render(shortened, True, color)
+        if rendered.get_width() <= max_width:
+            return rendered
+    return font.render("...", True, color)
 
 
 def _to_pygame_rect(rect: object) -> pygame.Rect:
