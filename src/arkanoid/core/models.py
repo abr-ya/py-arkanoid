@@ -137,6 +137,7 @@ class VisualFeedback:
     height: float
     remaining: float
     duration: float
+    label: str = ""
 
     @property
     def rect(self) -> Rect:

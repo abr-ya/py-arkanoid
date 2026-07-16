@@ -25,6 +25,7 @@ SLOW_DURATION_SECONDS = 8.0
 WIDE_PADDLE_MULTIPLIER = 1.5
 SLOW_BALL_MULTIPLIER = 0.7
 BRICK_HIT_FEEDBACK_SECONDS = 0.18
+SCORE_FEEDBACK_SECONDS = 0.65
 
 
 def create_starter_bricks() -> list[Brick]:
@@ -217,6 +218,8 @@ class GameSession:
             if brick.hit():
                 self.bricks.remove(brick)
                 self.score += brick.score
+                if brick.score:
+                    self._record_score_feedback(brick)
                 self._record_sound_event(SoundEvent.BRICK_BREAK)
                 if brick.grants_extra_life:
                     self.lives += 1
@@ -325,6 +328,21 @@ class GameSession:
                 height=rect.height,
                 remaining=BRICK_HIT_FEEDBACK_SECONDS,
                 duration=BRICK_HIT_FEEDBACK_SECONDS,
+            )
+        )
+
+    def _record_score_feedback(self, brick: Brick) -> None:
+        rect = brick.rect
+        self.visual_feedback.append(
+            VisualFeedback(
+                kind="score",
+                x=rect.x,
+                y=rect.y - 24,
+                width=rect.width,
+                height=rect.height,
+                remaining=SCORE_FEEDBACK_SECONDS,
+                duration=SCORE_FEEDBACK_SECONDS,
+                label=f"+{brick.score}",
             )
         )
 

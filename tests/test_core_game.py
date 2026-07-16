@@ -110,15 +110,33 @@ def test_brick_hit_records_short_visual_feedback() -> None:
 
     session.update(0)
 
-    assert len(session.visual_feedback) == 1
-    feedback = session.visual_feedback[0]
+    feedback = next(item for item in session.visual_feedback if item.kind == "brick-hit")
     assert feedback.kind == "brick-hit"
     assert feedback.rect.x == brick.x
     assert feedback.rect.y == brick.y
 
-    session.update(feedback.duration)
+    session.update(max(item.duration for item in session.visual_feedback))
 
     assert session.visual_feedback == []
+
+
+def test_destroying_scoring_brick_records_score_feedback() -> None:
+    session = create_session()
+    session.start()
+    brick = Brick(x=100, y=100)
+    session.bricks = [brick]
+    session.ball.attached = False
+    session.ball.x = 110
+    session.ball.y = 110
+    session.ball.vx = 0
+    session.ball.vy = -200
+
+    session.update(0)
+
+    score_feedback = next(item for item in session.visual_feedback if item.kind == "score")
+    assert score_feedback.label == f"+{BRICK_SCORE}"
+    assert score_feedback.rect.x == brick.x
+    assert score_feedback.y < brick.y
 
 
 def test_life_loss_resets_ball_and_final_life_sets_game_over() -> None:

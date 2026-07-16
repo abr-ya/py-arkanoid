@@ -126,7 +126,7 @@ def _draw(
         return
 
     _draw_hud(screen, session, font)
-    _draw_entities(screen, session)
+    _draw_entities(screen, session, font)
 
     if session.state is GameState.PAUSED:
         _draw_overlay_panel(screen, HEIGHT / 2 - 84, 168)
@@ -190,7 +190,7 @@ def _draw_hud(screen: pygame.Surface, session: GameSession, font: pygame.font.Fo
         screen.blit(launch_hint, (WIDTH - launch_hint.get_width() - 18, 42))
 
 
-def _draw_entities(screen: pygame.Surface, session: GameSession) -> None:
+def _draw_entities(screen: pygame.Surface, session: GameSession, font: pygame.font.Font) -> None:
     pygame.draw.rect(screen, PADDLE, _to_pygame_rect(session.paddle.rect), border_radius=4)
     for ball in session.balls:
         pygame.draw.circle(
@@ -230,18 +230,26 @@ def _draw_entities(screen: pygame.Surface, session: GameSession) -> None:
             width=1,
             border_radius=3,
         )
-    _draw_visual_feedback(screen, session)
+    _draw_visual_feedback(screen, session, font)
 
 
-def _draw_visual_feedback(screen: pygame.Surface, session: GameSession) -> None:
+def _draw_visual_feedback(
+    screen: pygame.Surface,
+    session: GameSession,
+    font: pygame.font.Font,
+) -> None:
     for feedback in session.visual_feedback:
-        if feedback.kind != "brick-hit":
-            continue
-        rect = _to_pygame_rect(feedback.rect).inflate(6, 6)
-        alpha = round(210 * feedback.progress)
-        effect = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
-        pygame.draw.rect(effect, (*WARNING, alpha), effect.get_rect(), width=3, border_radius=5)
-        screen.blit(effect, rect)
+        if feedback.kind == "brick-hit":
+            rect = _to_pygame_rect(feedback.rect).inflate(6, 6)
+            alpha = round(210 * feedback.progress)
+            effect = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+            pygame.draw.rect(effect, (*WARNING, alpha), effect.get_rect(), width=3, border_radius=5)
+            screen.blit(effect, rect)
+        elif feedback.kind == "score":
+            rendered = font.render(feedback.label, True, ACCENT)
+            rendered.set_alpha(round(255 * feedback.progress))
+            rect = rendered.get_rect(center=(feedback.rect.center_x, feedback.y))
+            screen.blit(rendered, rect)
 
 
 def _level_progress_label(session: GameSession) -> str:
