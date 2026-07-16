@@ -97,6 +97,30 @@ def test_brick_destroyed_once_and_score_increases() -> None:
     assert session.score == BRICK_SCORE
 
 
+def test_brick_hit_records_short_visual_feedback() -> None:
+    session = create_session()
+    session.start()
+    brick = Brick(x=100, y=100)
+    session.bricks = [brick]
+    session.ball.attached = False
+    session.ball.x = 110
+    session.ball.y = 110
+    session.ball.vx = 0
+    session.ball.vy = -200
+
+    session.update(0)
+
+    assert len(session.visual_feedback) == 1
+    feedback = session.visual_feedback[0]
+    assert feedback.kind == "brick-hit"
+    assert feedback.rect.x == brick.x
+    assert feedback.rect.y == brick.y
+
+    session.update(feedback.duration)
+
+    assert session.visual_feedback == []
+
+
 def test_life_loss_resets_ball_and_final_life_sets_game_over() -> None:
     session = create_session()
     session.start()

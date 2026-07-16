@@ -14,6 +14,7 @@ from arkanoid.core.models import (
     Playfield,
     PowerUpType,
     Rect,
+    VisualFeedback,
 )
 from arkanoid.core.state import GameState, toggle_pause
 
@@ -23,6 +24,7 @@ WIDE_DURATION_SECONDS = 10.0
 SLOW_DURATION_SECONDS = 8.0
 WIDE_PADDLE_MULTIPLIER = 1.5
 SLOW_BALL_MULTIPLIER = 0.7
+BRICK_HIT_FEEDBACK_SECONDS = 0.18
 
 
 def create_starter_bricks() -> list[Brick]:
@@ -41,6 +43,7 @@ class GameSession:
     leaderboard_store: LeaderboardStore = field(default_factory=LeaderboardStore)
     leaderboard_records: list[LeaderboardRecord] = field(default_factory=list)
     bonus_items: list[BonusItem] = field(default_factory=list)
+    visual_feedback: list[VisualFeedback] = field(default_factory=list)
     active_effects: dict[PowerUpType, ActiveEffect] = field(default_factory=dict)
     sticky_charges: int = 0
     lives: int = 3
@@ -82,6 +85,7 @@ class GameSession:
             self.bricks = fresh.bricks
             self.leaderboard_records = fresh.leaderboard_records
             self.bonus_items = fresh.bonus_items
+            self.visual_feedback = fresh.visual_feedback
             self.active_effects = fresh.active_effects
             self.sticky_charges = fresh.sticky_charges
             self.lives = fresh.lives
@@ -139,6 +143,8 @@ class GameSession:
         self.state = GameState.GAME_OVER
 
     def update(self, dt: float, paddle_direction: float = 0) -> None:
+        self._update_visual_feedback(dt)
+
         if self.state is GameState.LEVEL_CLEAR:
             self._update_level_clear(dt)
             return
@@ -207,6 +213,7 @@ class GameSession:
                 continue
 
             self._reflect_from_rect(ball, brick.rect)
+            self._record_brick_hit_feedback(brick)
             if brick.hit():
                 self.bricks.remove(brick)
                 self.score += brick.score
@@ -247,6 +254,7 @@ class GameSession:
         )
         self.bricks = create_bricks_for_level(self.level)
         self.bonus_items.clear()
+        self.visual_feedback.clear()
         self.active_effects.clear()
         self.sticky_charges = 0
         self.reset_ball()
@@ -305,6 +313,26 @@ class GameSession:
                 self._record_sound_event(SoundEvent.POWER_UP_PICKUP)
             elif item.y > self.playfield.height:
                 self.bonus_items.remove(item)
+
+    def _record_brick_hit_feedback(self, brick: Brick) -> None:
+        rect = brick.rect
+        self.visual_feedback.append(
+            VisualFeedback(
+                kind="brick-hit",
+                x=rect.x,
+                y=rect.y,
+                width=rect.width,
+                height=rect.height,
+                remaining=BRICK_HIT_FEEDBACK_SECONDS,
+                duration=BRICK_HIT_FEEDBACK_SECONDS,
+            )
+        )
+
+    def _update_visual_feedback(self, dt: float) -> None:
+        for feedback in list(self.visual_feedback):
+            feedback.remaining -= dt
+            if feedback.remaining <= 0:
+                self.visual_feedback.remove(feedback)
 
     def _activate_power_up(self, power_up_type: PowerUpType) -> None:
         if power_up_type is PowerUpType.WIDE:

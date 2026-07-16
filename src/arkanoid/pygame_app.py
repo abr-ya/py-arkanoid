@@ -230,6 +230,18 @@ def _draw_entities(screen: pygame.Surface, session: GameSession) -> None:
             width=1,
             border_radius=3,
         )
+    _draw_visual_feedback(screen, session)
+
+
+def _draw_visual_feedback(screen: pygame.Surface, session: GameSession) -> None:
+    for feedback in session.visual_feedback:
+        if feedback.kind != "brick-hit":
+            continue
+        rect = _to_pygame_rect(feedback.rect).inflate(6, 6)
+        alpha = round(210 * feedback.progress)
+        effect = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+        pygame.draw.rect(effect, (*WARNING, alpha), effect.get_rect(), width=3, border_radius=5)
+        screen.blit(effect, rect)
 
 
 def _level_progress_label(session: GameSession) -> str:
