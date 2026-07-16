@@ -10,8 +10,7 @@
 - [ ] 2.2 Improve game-over feedback without changing local leaderboard flow.
 - [ ] 2.3 Verify feedback does not obscure the ball, paddle, bricks, or HUD.
 
-## 3. Bounded QoL
+## 3. Scope Guard
 
-- [ ] 3.1 Review play observations after Feature 08 lands.
-- [ ] 3.2 Add only small QoL adjustments tied to observed clarity or frustration issues.
-- [ ] 3.3 Keep sound, level-content, server, online leaderboard, and packaging follow-ups out of this slice unless they are bug fixes.
+- [ ] 3.1 Confirm broader QoL observations are deferred to `feature-10-polish-bounded-qol`.
+- [ ] 3.2 Keep sound, level-content, server, online leaderboard, controls, balance, and packaging follow-ups out of this slice unless they are feedback regressions.
