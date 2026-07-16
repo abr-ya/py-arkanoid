@@ -59,6 +59,18 @@ def default_levels_dir() -> Path:
     return resources.levels_dir()
 
 
+def count_available_levels(levels_dir: Path | None = None) -> int:
+    directory = levels_dir or default_levels_dir()
+    try:
+        return sum(
+            1
+            for path in directory.glob("level_*.yaml")
+            if _level_number_from_path(path) is not None
+        )
+    except OSError:
+        return 0
+
+
 def load_level(level_number: int = DEFAULT_LEVEL_NUMBER, levels_dir: Path | None = None) -> LevelConfig:
     path = (levels_dir or default_levels_dir()) / f"level_{level_number:02}.yaml"
     try:
@@ -90,6 +102,17 @@ def create_bricks_for_level(level: LevelConfig) -> list[Brick]:
                 )
             )
     return bricks
+
+
+def _level_number_from_path(path: Path) -> int | None:
+    stem = path.stem
+    prefix = "level_"
+    if not stem.startswith(prefix):
+        return None
+    try:
+        return int(stem[len(prefix) :])
+    except ValueError:
+        return None
 
 
 def _level_from_mapping(raw: dict[str, Any]) -> LevelConfig:

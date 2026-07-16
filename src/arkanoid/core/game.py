@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 
 from arkanoid.core.events import SoundEvent
 from arkanoid.core.leaderboard import LeaderboardRecord, LeaderboardStore
-from arkanoid.core.levels import LevelConfig, create_bricks_for_level, load_level
+from arkanoid.core.levels import LevelConfig, count_available_levels, create_bricks_for_level, load_level
 from arkanoid.core.models import (
     ActiveEffect,
     Ball,
@@ -34,6 +34,7 @@ class GameSession:
     playfield: Playfield = field(default_factory=Playfield)
     state: GameState = GameState.MENU
     level: LevelConfig = field(default_factory=load_level)
+    total_levels: int = field(default_factory=count_available_levels)
     paddle: Paddle = field(init=False)
     balls: list[Ball] = field(init=False)
     bricks: list[Brick] = field(init=False)
@@ -75,6 +76,7 @@ class GameSession:
             self.playfield = fresh.playfield
             self.state = GameState.PLAYING
             self.level = fresh.level
+            self.total_levels = fresh.total_levels
             self.paddle = fresh.paddle
             self.balls = fresh.balls
             self.bricks = fresh.bricks
