@@ -4,7 +4,7 @@ from typing import Iterable
 
 import pygame
 
-from arkanoid.core.game import GameSession, create_session
+from arkanoid.core.game import LEVEL_CLEAR_SECONDS, GameSession, create_session
 from arkanoid.core.events import SoundEvent
 from arkanoid.core.models import PowerUpType
 from arkanoid.core.state import GameState
@@ -126,7 +126,7 @@ def _draw(
         return
 
     _draw_hud(screen, session, font)
-    _draw_entities(screen, session)
+    _draw_entities(screen, session, font)
 
     if session.state is GameState.PAUSED:
         _draw_overlay_panel(screen, HEIGHT / 2 - 84, 168)
@@ -134,9 +134,11 @@ def _draw(
         _draw_centered_fit(screen, font, "Esc to resume", HEIGHT / 2 + 18, ACCENT)
         _draw_centered_fit(screen, font, "Q to quit", HEIGHT / 2 + 54, MUTED)
     elif session.state is GameState.LEVEL_CLEAR:
-        _draw_overlay_panel(screen, HEIGHT / 2 - 76, 152)
-        _draw_centered_fit(screen, title_font, "LEVEL CLEAR", HEIGHT / 2 - 24, ACCENT)
-        _draw_centered_fit(screen, font, "Next level loading", HEIGHT / 2 + 30, MUTED)
+        _draw_overlay_panel(screen, HEIGHT / 2 - 96, 192)
+        _draw_centered_fit(screen, title_font, "LEVEL CLEAR", HEIGHT / 2 - 54, ACCENT)
+        _draw_centered_fit(screen, font, _level_clear_summary(session), HEIGHT / 2 - 4, FOREGROUND)
+        _draw_centered_fit(screen, font, f"Score {session.score}", HEIGHT / 2 + 34, MUTED)
+        _draw_level_clear_progress(screen, session, HEIGHT / 2 + 66)
     elif session.state is GameState.NAME_ENTRY:
         _draw_overlay_panel(screen, HEIGHT / 2 - 132, 242)
         _draw_centered_fit(screen, title_font, "NEW SCORE", HEIGHT / 2 - 90, FOREGROUND)
@@ -144,10 +146,12 @@ def _draw(
         _draw_centered_fit(screen, font, f"Name: {session.score_name:<3}", HEIGHT / 2 + 6, ACCENT)
         _draw_centered_fit(screen, font, "Type 3 letters, then press Enter", HEIGHT / 2 + 48, MUTED)
     elif session.state is GameState.GAME_OVER:
-        _draw_overlay_panel(screen, HEIGHT / 2 - 152, 286)
-        _draw_centered_fit(screen, title_font, "GAME OVER", HEIGHT / 2 - 104, FOREGROUND)
-        _draw_centered_fit(screen, font, f"Final score: {session.score}", HEIGHT / 2 - 50, MUTED)
-        _draw_leaderboard(screen, session, font, HEIGHT / 2 - 12)
+        _draw_overlay_panel(screen, HEIGHT / 2 - 180, 360)
+        _draw_centered_fit(screen, title_font, "GAME OVER", HEIGHT / 2 - 128, WARNING)
+        _draw_centered_fit(screen, font, _game_over_summary(session), HEIGHT / 2 - 76, MUTED)
+        _draw_centered_fit(screen, font, f"Final score: {session.score}", HEIGHT / 2 - 38, ACCENT)
+        _draw_centered_fit(screen, font, _best_score_label(session), HEIGHT / 2 - 4, MUTED)
+        _draw_leaderboard(screen, session, font, HEIGHT / 2 + 30)
         _draw_centered_fit(screen, font, "Enter or Space to play again", HEIGHT - 72, ACCENT)
         _draw_centered_fit(screen, font, "Q to quit", HEIGHT - 42, MUTED)
 
@@ -190,7 +194,7 @@ def _draw_hud(screen: pygame.Surface, session: GameSession, font: pygame.font.Fo
         screen.blit(launch_hint, (WIDTH - launch_hint.get_width() - 18, 42))
 
 
-def _draw_entities(screen: pygame.Surface, session: GameSession) -> None:
+def _draw_entities(screen: pygame.Surface, session: GameSession, font: pygame.font.Font) -> None:
     pygame.draw.rect(screen, PADDLE, _to_pygame_rect(session.paddle.rect), border_radius=4)
     for ball in session.balls:
         pygame.draw.circle(
@@ -230,12 +234,66 @@ def _draw_entities(screen: pygame.Surface, session: GameSession) -> None:
             width=1,
             border_radius=3,
         )
+    _draw_visual_feedback(screen, session, font)
+
+
+def _draw_visual_feedback(
+    screen: pygame.Surface,
+    session: GameSession,
+    font: pygame.font.Font,
+) -> None:
+    for feedback in session.visual_feedback:
+        if feedback.kind == "brick-hit":
+            rect = _to_pygame_rect(feedback.rect).inflate(6, 6)
+            alpha = round(210 * feedback.progress)
+            effect = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+            pygame.draw.rect(effect, (*WARNING, alpha), effect.get_rect(), width=3, border_radius=5)
+            screen.blit(effect, rect)
+        elif feedback.kind == "score":
+            rendered = font.render(feedback.label, True, ACCENT)
+            rendered.set_alpha(round(255 * feedback.progress))
+            rect = rendered.get_rect(center=(feedback.rect.center_x, feedback.y))
+            screen.blit(rendered, rect)
+        elif feedback.kind == "life-loss":
+            rendered = font.render(feedback.label, True, WARNING)
+            rendered.set_alpha(round(255 * feedback.progress))
+            y_offset = round((1 - feedback.progress) * 18)
+            rect = rendered.get_rect(
+                center=(feedback.rect.center_x, feedback.rect.center_y - y_offset)
+            )
+            screen.blit(rendered, rect)
 
 
 def _level_progress_label(session: GameSession) -> str:
     if session.total_levels <= 0:
         return str(session.level.number)
     return f"{session.level.number}/{session.total_levels}"
+
+
+def _level_clear_summary(session: GameSession) -> str:
+    return f"Level {_level_progress_label(session)} complete"
+
+
+def _game_over_summary(session: GameSession) -> str:
+    return f"Run ended on level {_level_progress_label(session)}"
+
+
+def _best_score_label(session: GameSession) -> str:
+    if not session.leaderboard_records:
+        return "No saved scores yet"
+    return f"Best score: {session.leaderboard_records[0].score}"
+
+
+def _draw_level_clear_progress(screen: pygame.Surface, session: GameSession, y: float) -> None:
+    track = pygame.Rect(WIDTH // 2 - 128, round(y), 256, 8)
+    pygame.draw.rect(screen, SURFACE_LIGHT, track, border_radius=4)
+    if session.level_clear_timer <= 0:
+        progress = 1.0
+    else:
+        progress = 1 - min(1.0, session.level_clear_timer / LEVEL_CLEAR_SECONDS)
+    fill = track.copy()
+    fill.width = max(1, round(track.width * progress))
+    pygame.draw.rect(screen, ACCENT, fill, border_radius=4)
 
 
 def _draw_leaderboard(

@@ -1,6 +1,6 @@
 ## Why
 
-The eventual leaderboard server is outside this project, but the game should be able to submit and read scores when a server exists. This change is deferred until the local, shareable game has builds, baseline sounds, more levels, readability polish, and feedback polish.
+The eventual leaderboard server is outside this project, but the game should be able to submit and read scores when a server exists. This change is deferred until the local, shareable game has builds, baseline sounds, more levels, readability polish, feedback polish, and bounded quality-of-life polish.
 
 ## What Changes
 

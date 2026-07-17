@@ -128,6 +128,28 @@ class ActiveEffect:
     remaining: float
 
 
+@dataclass(slots=True)
+class VisualFeedback:
+    kind: str
+    x: float
+    y: float
+    width: float
+    height: float
+    remaining: float
+    duration: float
+    label: str = ""
+
+    @property
+    def rect(self) -> Rect:
+        return Rect(self.x, self.y, self.width, self.height)
+
+    @property
+    def progress(self) -> float:
+        if self.duration <= 0:
+            return 1
+        return max(0, min(1, self.remaining / self.duration))
+
+
 class BrickType(Enum):
     NORMAL = "normal"
     STRONG = "strong"
