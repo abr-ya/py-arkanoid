@@ -6,7 +6,7 @@
 
 ## 2. Completion And Failure States
 
-- [ ] 2.1 Improve level-clear feedback without changing level progression rules.
+- [x] 2.1 Improve level-clear feedback without changing level progression rules.
 - [ ] 2.2 Improve game-over feedback without changing local leaderboard flow.
 - [ ] 2.3 Verify feedback does not obscure the ball, paddle, bricks, or HUD.
 

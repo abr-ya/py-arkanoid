@@ -4,7 +4,7 @@ from typing import Iterable
 
 import pygame
 
-from arkanoid.core.game import GameSession, create_session
+from arkanoid.core.game import LEVEL_CLEAR_SECONDS, GameSession, create_session
 from arkanoid.core.events import SoundEvent
 from arkanoid.core.models import PowerUpType
 from arkanoid.core.state import GameState
@@ -134,9 +134,11 @@ def _draw(
         _draw_centered_fit(screen, font, "Esc to resume", HEIGHT / 2 + 18, ACCENT)
         _draw_centered_fit(screen, font, "Q to quit", HEIGHT / 2 + 54, MUTED)
     elif session.state is GameState.LEVEL_CLEAR:
-        _draw_overlay_panel(screen, HEIGHT / 2 - 76, 152)
-        _draw_centered_fit(screen, title_font, "LEVEL CLEAR", HEIGHT / 2 - 24, ACCENT)
-        _draw_centered_fit(screen, font, "Next level loading", HEIGHT / 2 + 30, MUTED)
+        _draw_overlay_panel(screen, HEIGHT / 2 - 96, 192)
+        _draw_centered_fit(screen, title_font, "LEVEL CLEAR", HEIGHT / 2 - 54, ACCENT)
+        _draw_centered_fit(screen, font, _level_clear_summary(session), HEIGHT / 2 - 4, FOREGROUND)
+        _draw_centered_fit(screen, font, f"Score {session.score}", HEIGHT / 2 + 34, MUTED)
+        _draw_level_clear_progress(screen, session, HEIGHT / 2 + 66)
     elif session.state is GameState.NAME_ENTRY:
         _draw_overlay_panel(screen, HEIGHT / 2 - 132, 242)
         _draw_centered_fit(screen, title_font, "NEW SCORE", HEIGHT / 2 - 90, FOREGROUND)
@@ -264,6 +266,22 @@ def _level_progress_label(session: GameSession) -> str:
     if session.total_levels <= 0:
         return str(session.level.number)
     return f"{session.level.number}/{session.total_levels}"
+
+
+def _level_clear_summary(session: GameSession) -> str:
+    return f"Level {_level_progress_label(session)} complete"
+
+
+def _draw_level_clear_progress(screen: pygame.Surface, session: GameSession, y: float) -> None:
+    track = pygame.Rect(WIDTH // 2 - 128, round(y), 256, 8)
+    pygame.draw.rect(screen, SURFACE_LIGHT, track, border_radius=4)
+    if session.level_clear_timer <= 0:
+        progress = 1.0
+    else:
+        progress = 1 - min(1.0, session.level_clear_timer / LEVEL_CLEAR_SECONDS)
+    fill = track.copy()
+    fill.width = max(1, round(track.width * progress))
+    pygame.draw.rect(screen, ACCENT, fill, border_radius=4)
 
 
 def _draw_leaderboard(
