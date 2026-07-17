@@ -146,10 +146,12 @@ def _draw(
         _draw_centered_fit(screen, font, f"Name: {session.score_name:<3}", HEIGHT / 2 + 6, ACCENT)
         _draw_centered_fit(screen, font, "Type 3 letters, then press Enter", HEIGHT / 2 + 48, MUTED)
     elif session.state is GameState.GAME_OVER:
-        _draw_overlay_panel(screen, HEIGHT / 2 - 152, 286)
-        _draw_centered_fit(screen, title_font, "GAME OVER", HEIGHT / 2 - 104, FOREGROUND)
-        _draw_centered_fit(screen, font, f"Final score: {session.score}", HEIGHT / 2 - 50, MUTED)
-        _draw_leaderboard(screen, session, font, HEIGHT / 2 - 12)
+        _draw_overlay_panel(screen, HEIGHT / 2 - 180, 360)
+        _draw_centered_fit(screen, title_font, "GAME OVER", HEIGHT / 2 - 128, WARNING)
+        _draw_centered_fit(screen, font, _game_over_summary(session), HEIGHT / 2 - 76, MUTED)
+        _draw_centered_fit(screen, font, f"Final score: {session.score}", HEIGHT / 2 - 38, ACCENT)
+        _draw_centered_fit(screen, font, _best_score_label(session), HEIGHT / 2 - 4, MUTED)
+        _draw_leaderboard(screen, session, font, HEIGHT / 2 + 30)
         _draw_centered_fit(screen, font, "Enter or Space to play again", HEIGHT - 72, ACCENT)
         _draw_centered_fit(screen, font, "Q to quit", HEIGHT - 42, MUTED)
 
@@ -270,6 +272,16 @@ def _level_progress_label(session: GameSession) -> str:
 
 def _level_clear_summary(session: GameSession) -> str:
     return f"Level {_level_progress_label(session)} complete"
+
+
+def _game_over_summary(session: GameSession) -> str:
+    return f"Run ended on level {_level_progress_label(session)}"
+
+
+def _best_score_label(session: GameSession) -> str:
+    if not session.leaderboard_records:
+        return "No saved scores yet"
+    return f"Best score: {session.leaderboard_records[0].score}"
 
 
 def _draw_level_clear_progress(screen: pygame.Surface, session: GameSession, y: float) -> None:
