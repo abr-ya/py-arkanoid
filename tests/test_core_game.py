@@ -150,6 +150,10 @@ def test_life_loss_resets_ball_and_final_life_sets_game_over() -> None:
     assert session.lives == 2
     assert session.state is GameState.PLAYING
     assert session.ball.attached
+    feedback = next(item for item in session.visual_feedback if item.kind == "life-loss")
+    assert feedback.label == "-1 LIFE"
+    assert feedback.rect.center_x == session.paddle.center_x
+    assert feedback.y < session.paddle.y
 
     session.lives = 1
     session.ball.attached = False
@@ -491,6 +495,7 @@ def test_multi_bonus_adds_ball_and_only_final_ball_loses_life() -> None:
     assert len(session.balls) == 1
     assert session.lives == 3
     assert session.state is GameState.PLAYING
+    assert all(item.kind != "life-loss" for item in session.visual_feedback)
 
     final_ball = session.balls[0]
     final_ball.y = session.playfield.height + final_ball.radius + 1
@@ -499,6 +504,7 @@ def test_multi_bonus_adds_ball_and_only_final_ball_loses_life() -> None:
     assert session.lives == 2
     assert len(session.balls) == 1
     assert session.ball.attached
+    assert any(item.kind == "life-loss" for item in session.visual_feedback)
 
 
 def test_sticky_bonus_catches_next_ball_until_launch() -> None:

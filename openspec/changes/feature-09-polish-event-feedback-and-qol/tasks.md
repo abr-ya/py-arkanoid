@@ -2,7 +2,7 @@
 
 - [x] 1.1 Add immediate visual feedback for brick hits.
 - [x] 1.2 Add clear score-change feedback where it helps the player notice scoring.
-- [ ] 1.3 Add clear life-loss feedback before the next launch.
+- [x] 1.3 Add clear life-loss feedback before the next launch.
 
 ## 2. Completion And Failure States
 

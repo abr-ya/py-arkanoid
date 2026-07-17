@@ -250,6 +250,14 @@ def _draw_visual_feedback(
             rendered.set_alpha(round(255 * feedback.progress))
             rect = rendered.get_rect(center=(feedback.rect.center_x, feedback.y))
             screen.blit(rendered, rect)
+        elif feedback.kind == "life-loss":
+            rendered = font.render(feedback.label, True, WARNING)
+            rendered.set_alpha(round(255 * feedback.progress))
+            y_offset = round((1 - feedback.progress) * 18)
+            rect = rendered.get_rect(
+                center=(feedback.rect.center_x, feedback.rect.center_y - y_offset)
+            )
+            screen.blit(rendered, rect)
 
 
 def _level_progress_label(session: GameSession) -> str:

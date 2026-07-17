@@ -26,6 +26,7 @@ WIDE_PADDLE_MULTIPLIER = 1.5
 SLOW_BALL_MULTIPLIER = 0.7
 BRICK_HIT_FEEDBACK_SECONDS = 0.18
 SCORE_FEEDBACK_SECONDS = 0.65
+LIFE_LOSS_FEEDBACK_SECONDS = 0.9
 
 
 def create_starter_bricks() -> list[Brick]:
@@ -285,6 +286,7 @@ class GameSession:
             return
 
         self.lives -= 1
+        self._record_life_loss_feedback()
         if self.lives <= 0:
             self.state = GameState.NAME_ENTRY if self.score > 0 else GameState.GAME_OVER
             self.score_name = ""
@@ -343,6 +345,20 @@ class GameSession:
                 remaining=SCORE_FEEDBACK_SECONDS,
                 duration=SCORE_FEEDBACK_SECONDS,
                 label=f"+{brick.score}",
+            )
+        )
+
+    def _record_life_loss_feedback(self) -> None:
+        self.visual_feedback.append(
+            VisualFeedback(
+                kind="life-loss",
+                x=self.paddle.x,
+                y=self.paddle.y - 42,
+                width=self.paddle.width,
+                height=24,
+                remaining=LIFE_LOSS_FEEDBACK_SECONDS,
+                duration=LIFE_LOSS_FEEDBACK_SECONDS,
+                label="-1 LIFE",
             )
         )
 
