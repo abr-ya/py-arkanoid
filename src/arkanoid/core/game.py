@@ -19,7 +19,7 @@ from arkanoid.core.models import (
 from arkanoid.core.state import GameState, toggle_pause
 
 BRICK_SCORE = 100
-LEVEL_CLEAR_SECONDS = 0.8
+LEVEL_CLEAR_SECONDS = 1.2
 WIDE_DURATION_SECONDS = 10.0
 SLOW_DURATION_SECONDS = 8.0
 WIDE_PADDLE_MULTIPLIER = 1.5

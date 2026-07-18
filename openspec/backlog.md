@@ -27,6 +27,13 @@ order.
 | 10 | [`feature-10-polish-bounded-qol`](changes/feature-10-polish-bounded-qol/proposal.md) | Observation-driven quality-of-life polish that preserves accepted gameplay behavior. | [design](changes/feature-10-polish-bounded-qol/design.md), [tasks](changes/feature-10-polish-bounded-qol/tasks.md), [specs](changes/feature-10-polish-bounded-qol/specs/) |
 | 11 | [`feature-11-add-online-leaderboard-client`](changes/feature-11-add-online-leaderboard-client/proposal.md) | Optional HTTP leaderboard client integration with local-first fallback; server-side score persistence remains separate. | [design](changes/feature-11-add-online-leaderboard-client/design.md), [tasks](changes/feature-11-add-online-leaderboard-client/tasks.md), [specs](changes/feature-11-add-online-leaderboard-client/specs/) |
 
+## Future Candidates
+
+- Allow local leaderboard name entry between 2 and 12 characters, replacing the
+  current fixed 3-character initials constraint. This should be a dedicated
+  leaderboard/input change because it updates score-entry validation, display
+  layout, and saved-record expectations.
+
 ## Working Rule
 
 Before implementing a later feature, review and adjust its proposal, design,

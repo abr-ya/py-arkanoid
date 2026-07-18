@@ -1,6 +1,11 @@
 from pathlib import Path
 
-from arkanoid.core.game import BRICK_SCORE, SLOW_BALL_MULTIPLIER, create_session
+from arkanoid.core.game import (
+    BRICK_SCORE,
+    LEVEL_CLEAR_SECONDS,
+    SLOW_BALL_MULTIPLIER,
+    create_session,
+)
 from arkanoid.core.events import SoundEvent
 from arkanoid.core.leaderboard import LeaderboardStore
 from arkanoid.core.levels import (
@@ -547,7 +552,7 @@ def test_level_clear_starts_transition_and_next_level_preserves_score() -> None:
         SoundEvent.LEVEL_COMPLETE,
     ]
 
-    session.update(1)
+    session.update(LEVEL_CLEAR_SECONDS)
 
     assert session.state is GameState.PLAYING
     assert session.level.number == 2
