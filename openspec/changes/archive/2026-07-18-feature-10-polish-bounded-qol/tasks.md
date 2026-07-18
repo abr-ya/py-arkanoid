@@ -14,4 +14,4 @@
 
 - [x] 3.1 Add or update focused tests for any changed behavior.
 - [x] 3.2 Run focused automated validation.
-- [ ] 3.3 Perform a short manual play check for the addressed observations.
+- [x] 3.3 Perform a short manual play check for the addressed observations.
