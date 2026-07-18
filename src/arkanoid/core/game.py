@@ -19,7 +19,7 @@ from arkanoid.core.models import (
 from arkanoid.core.state import GameState, toggle_pause
 
 BRICK_SCORE = 100
-LEVEL_CLEAR_SECONDS = 0.8
+LEVEL_CLEAR_SECONDS = 1.2
 WIDE_DURATION_SECONDS = 10.0
 SLOW_DURATION_SECONDS = 8.0
 WIDE_PADDLE_MULTIPLIER = 1.5
@@ -27,6 +27,7 @@ SLOW_BALL_MULTIPLIER = 0.7
 BRICK_HIT_FEEDBACK_SECONDS = 0.18
 SCORE_FEEDBACK_SECONDS = 0.65
 LIFE_LOSS_FEEDBACK_SECONDS = 0.9
+SCORE_NAME_WARNING_SECONDS = 1.2
 
 
 def create_starter_bricks() -> list[Brick]:
@@ -51,6 +52,7 @@ class GameSession:
     lives: int = 3
     score: int = 0
     score_name: str = ""
+    score_name_warning_timer: float = 0
     level_clear_timer: float = 0
     wants_quit: bool = False
     sound_events: list[SoundEvent] = field(default_factory=list)
@@ -93,6 +95,7 @@ class GameSession:
             self.lives = fresh.lives
             self.score = fresh.score
             self.score_name = ""
+            self.score_name_warning_timer = 0
             self.level_clear_timer = 0
             self.wants_quit = False
             self.sound_events = []
@@ -132,20 +135,27 @@ class GameSession:
         if len(value) != 1 or not value.isalnum():
             return
         self.score_name += value.upper()
+        if len(self.score_name) == 3:
+            self.score_name_warning_timer = 0
 
     def delete_score_name_char(self) -> None:
         if self.state is GameState.NAME_ENTRY:
             self.score_name = self.score_name[:-1]
 
     def submit_score_name(self) -> None:
-        if self.state is not GameState.NAME_ENTRY or len(self.score_name) != 3:
+        if self.state is not GameState.NAME_ENTRY:
+            return
+        if len(self.score_name) != 3:
+            self.score_name_warning_timer = SCORE_NAME_WARNING_SECONDS
             return
         record = LeaderboardRecord.create(self.score_name, self.score)
         self.leaderboard_records = self.leaderboard_store.add_record(record)
         self.state = GameState.GAME_OVER
+        self.score_name_warning_timer = 0
 
     def update(self, dt: float, paddle_direction: float = 0) -> None:
         self._update_visual_feedback(dt)
+        self._update_score_name_warning(dt)
 
         if self.state is GameState.LEVEL_CLEAR:
             self._update_level_clear(dt)
@@ -358,9 +368,13 @@ class GameSession:
                 height=24,
                 remaining=LIFE_LOSS_FEEDBACK_SECONDS,
                 duration=LIFE_LOSS_FEEDBACK_SECONDS,
-                label="-1 LIFE",
+                label="-1 LIFE - SPACE TO RELAUNCH",
             )
         )
+
+    def _update_score_name_warning(self, dt: float) -> None:
+        if self.score_name_warning_timer > 0:
+            self.score_name_warning_timer = max(0, self.score_name_warning_timer - dt)
 
     def _update_visual_feedback(self, dt: float) -> None:
         for feedback in list(self.visual_feedback):

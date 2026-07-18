@@ -24,8 +24,15 @@ order.
 | 07 | [`feature-07-add-level-pack-and-difficulty`](changes/archive/2026-07-13-feature-07-add-level-pack-and-difficulty/proposal.md) | Expand the level set to 3-5 levels and define a clearer difficulty curve. | [design](changes/archive/2026-07-13-feature-07-add-level-pack-and-difficulty/design.md), [tasks](changes/archive/2026-07-13-feature-07-add-level-pack-and-difficulty/tasks.md), [specs](changes/archive/2026-07-13-feature-07-add-level-pack-and-difficulty/specs/) |
 | 08 | [`feature-08-polish-readability-and-screens`](changes/archive/2026-07-15-feature-08-polish-readability-and-screens/proposal.md) | Readability, colors, HUD, primary screens, control hints, and text fit after builds, sounds, and level content are in place. | [design](changes/archive/2026-07-15-feature-08-polish-readability-and-screens/design.md), [tasks](changes/archive/2026-07-15-feature-08-polish-readability-and-screens/tasks.md), [specs](changes/archive/2026-07-15-feature-08-polish-readability-and-screens/specs/) |
 | 09 | [`feature-09-polish-event-feedback-and-qol`](changes/archive/2026-07-17-feature-09-polish-event-feedback-and-qol/proposal.md) | Visible feedback for important gameplay events and completion/failure states. | [design](changes/archive/2026-07-17-feature-09-polish-event-feedback-and-qol/design.md), [tasks](changes/archive/2026-07-17-feature-09-polish-event-feedback-and-qol/tasks.md), [specs](changes/archive/2026-07-17-feature-09-polish-event-feedback-and-qol/specs/) |
-| 10 | [`feature-10-polish-bounded-qol`](changes/feature-10-polish-bounded-qol/proposal.md) | Observation-driven quality-of-life polish that preserves accepted gameplay behavior. | [design](changes/feature-10-polish-bounded-qol/design.md), [tasks](changes/feature-10-polish-bounded-qol/tasks.md), [specs](changes/feature-10-polish-bounded-qol/specs/) |
+| 10 | [`feature-10-polish-bounded-qol`](changes/archive/2026-07-18-feature-10-polish-bounded-qol/proposal.md) | Observation-driven quality-of-life polish that preserves accepted gameplay behavior. | [design](changes/archive/2026-07-18-feature-10-polish-bounded-qol/design.md), [tasks](changes/archive/2026-07-18-feature-10-polish-bounded-qol/tasks.md), [specs](changes/archive/2026-07-18-feature-10-polish-bounded-qol/specs/) |
 | 11 | [`feature-11-add-online-leaderboard-client`](changes/feature-11-add-online-leaderboard-client/proposal.md) | Optional HTTP leaderboard client integration with local-first fallback; server-side score persistence remains separate. | [design](changes/feature-11-add-online-leaderboard-client/design.md), [tasks](changes/feature-11-add-online-leaderboard-client/tasks.md), [specs](changes/feature-11-add-online-leaderboard-client/specs/) |
+
+## Future Candidates
+
+- Allow local leaderboard name entry between 2 and 12 characters, replacing the
+  current fixed 3-character initials constraint. This should be a dedicated
+  leaderboard/input change because it updates score-entry validation, display
+  layout, and saved-record expectations.
 
 ## Working Rule
 

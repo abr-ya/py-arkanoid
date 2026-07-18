@@ -4,11 +4,14 @@ from arkanoid.core.game import create_session
 from arkanoid.core.leaderboard import LeaderboardRecord
 from arkanoid.pygame_app import (
     FOREGROUND,
+    MUTED,
+    WARNING,
     _best_score_label,
     _game_over_summary,
     _level_clear_summary,
     _level_progress_label,
     _render_fit,
+    _score_name_hint,
 )
 
 
@@ -50,3 +53,13 @@ def test_best_score_label_uses_saved_top_score() -> None:
     session.leaderboard_records = [LeaderboardRecord.create("AAA", 900)]
 
     assert _best_score_label(session) == "Best score: 900"
+
+
+def test_score_name_hint_warns_after_incomplete_submit() -> None:
+    session = create_session()
+
+    assert _score_name_hint(session) == ("Type 3 letters, then press Enter", MUTED)
+
+    session.score_name_warning_timer = 1
+
+    assert _score_name_hint(session) == ("Enter 3 letters before submitting", WARNING)
