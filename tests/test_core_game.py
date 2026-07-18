@@ -4,6 +4,7 @@ from arkanoid.core.game import (
     BRICK_SCORE,
     LEVEL_CLEAR_SECONDS,
     SLOW_BALL_MULTIPLIER,
+    SCORE_NAME_WARNING_SECONDS,
     create_session,
 )
 from arkanoid.core.events import SoundEvent
@@ -156,7 +157,7 @@ def test_life_loss_resets_ball_and_final_life_sets_game_over() -> None:
     assert session.state is GameState.PLAYING
     assert session.ball.attached
     feedback = next(item for item in session.visual_feedback if item.kind == "life-loss")
-    assert feedback.label == "-1 LIFE"
+    assert feedback.label == "-1 LIFE - SPACE TO RELAUNCH"
     assert feedback.rect.center_x == session.paddle.center_x
     assert feedback.y < session.paddle.y
 
@@ -193,6 +194,24 @@ def test_game_over_score_entry_saves_record_and_allows_restart(tmp_path) -> None
     assert session.state is GameState.PLAYING
     assert session.score == 0
     assert [(record.name, record.score) for record in session.leaderboard_records] == [("ABC", 500)]
+
+
+def test_incomplete_score_name_submit_sets_temporary_warning(tmp_path) -> None:
+    session = create_session(LeaderboardStore(tmp_path / "leaderboard.json"))
+    session.state = GameState.NAME_ENTRY
+    session.score = 500
+    session.enter_score_name_char("a")
+    session.enter_score_name_char("b")
+
+    session.submit_score_name()
+
+    assert session.state is GameState.NAME_ENTRY
+    assert session.leaderboard_records == []
+    assert session.score_name_warning_timer == SCORE_NAME_WARNING_SECONDS
+
+    session.update(SCORE_NAME_WARNING_SECONDS)
+
+    assert session.score_name_warning_timer == 0
 
 
 def test_valid_level_config_loads_layout_and_settings(tmp_path) -> None:

@@ -144,7 +144,8 @@ def _draw(
         _draw_centered_fit(screen, title_font, "NEW SCORE", HEIGHT / 2 - 90, FOREGROUND)
         _draw_centered_fit(screen, font, f"Final score: {session.score}", HEIGHT / 2 - 38, MUTED)
         _draw_centered_fit(screen, font, f"Name: {session.score_name:<3}", HEIGHT / 2 + 6, ACCENT)
-        _draw_centered_fit(screen, font, "Type 3 letters, then press Enter", HEIGHT / 2 + 48, MUTED)
+        hint, hint_color = _score_name_hint(session)
+        _draw_centered_fit(screen, font, hint, HEIGHT / 2 + 48, hint_color)
     elif session.state is GameState.GAME_OVER:
         _draw_overlay_panel(screen, HEIGHT / 2 - 180, 360)
         _draw_centered_fit(screen, title_font, "GAME OVER", HEIGHT / 2 - 128, WARNING)
@@ -282,6 +283,12 @@ def _best_score_label(session: GameSession) -> str:
     if not session.leaderboard_records:
         return "No saved scores yet"
     return f"Best score: {session.leaderboard_records[0].score}"
+
+
+def _score_name_hint(session: GameSession) -> tuple[str, tuple[int, int, int]]:
+    if session.score_name_warning_timer > 0:
+        return "Enter 3 letters before submitting", WARNING
+    return "Type 3 letters, then press Enter", MUTED
 
 
 def _draw_level_clear_progress(screen: pygame.Surface, session: GameSession, y: float) -> None:

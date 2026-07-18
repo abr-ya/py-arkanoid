@@ -25,13 +25,14 @@ check should still be performed after selecting the QoL fixes.
    entered.
    - Evidence: `submit_score_name()` ignores incomplete names, while the screen
      only shows the static "Type 3 letters, then press Enter" hint.
-   - Candidate QoL: add a narrow presentation cue for incomplete name entry.
+   - QoL applied: show a temporary warning when Enter is pressed before all 3
+     letters are entered, without changing the fixed initials contract.
 
 3. After life loss, relaunch depends on noticing the attached ball and HUD hint.
    - Evidence: losing the final active ball records "-1 LIFE", immediately resets
      the ball onto the paddle, and relies on the existing "Space to launch" hint.
-   - Candidate QoL: make the relaunch-ready state more obvious only after a life
-     loss, without changing lives, scoring, speed, or launch controls.
+   - QoL applied: expand the existing life-loss cue to say "SPACE TO RELAUNCH",
+     without changing lives, scoring, speed, or launch controls.
 
 ## Deferred Ideas
 
